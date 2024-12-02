@@ -4,152 +4,175 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings2, Bell, Shield, Palette, LogOut } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState("profile");
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("usuarios");
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/login");
-    } catch (error) {
-      toast({
-        title: "Erro ao sair",
-        description: "Não foi possível fazer logout. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+        
+      if (error) throw error;
+      return data;
+    },
+  });
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Configurações</h1>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Configurações</h2>
+        <p className="text-muted-foreground">
+          Gerencie usuários, categorias, cursos e conteúdo.
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="profile" className="space-x-2">
-            <Settings2 className="w-4 h-4" />
-            <span>Perfil</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="space-x-2">
-            <Bell className="w-4 h-4" />
-            <span>Notificações</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="space-x-2">
-            <Shield className="w-4 h-4" />
-            <span>Segurança</span>
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="space-x-2">
-            <Palette className="w-4 h-4" />
-            <span>Aparência</span>
-          </TabsTrigger>
+          <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+          <TabsTrigger value="categorias">Categorias</TabsTrigger>
+          <TabsTrigger value="cursos">Cursos</TabsTrigger>
+          <TabsTrigger value="aulas">Aulas</TabsTrigger>
+          <TabsTrigger value="quiz">Quiz</TabsTrigger>
+          <TabsTrigger value="noticias">Notícias</TabsTrigger>
+          <TabsTrigger value="destaques">Destaques</TabsTrigger>
+          <TabsTrigger value="ebooks">E-books</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile">
+        <TabsContent value="usuarios" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Perfil</CardTitle>
+              <CardTitle>Gerenciar Usuários</CardTitle>
               <CardDescription>
-                Atualize suas informações pessoais e profissionais.
+                Adicione, edite ou remova usuários do sistema.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Nome</Label>
-                  <Input id="firstName" placeholder="Seu nome" />
+              {/* User management content will go here */}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categorias" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Categorias</CardTitle>
+              <CardDescription>
+                Gerencie as categorias disponíveis para cursos e conteúdo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="category-name">Nome da Categoria</Label>
+                    <Input id="category-name" placeholder="Nova categoria" />
+                  </div>
+                  <Button className="mt-6">Adicionar</Button>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Sobrenome</Label>
-                  <Input id="lastName" placeholder="Seu sobrenome" />
+                  {categories.map((category) => (
+                    <div key={category.id} className="flex items-center justify-between p-2 bg-card rounded-lg">
+                      <span>{category.name}</span>
+                      <div className="space-x-2">
+                        <Button variant="outline" size="sm">Editar</Button>
+                        <Button variant="destructive" size="sm">Excluir</Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" />
-              </div>
-              <Button>Salvar Alterações</Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
+        {/* Similar structure for other tabs */}
+        <TabsContent value="cursos">
           <Card>
             <CardHeader>
-              <CardTitle>Preferências de Notificação</CardTitle>
+              <CardTitle>Gerenciar Cursos</CardTitle>
               <CardDescription>
-                Gerencie como e quando você recebe notificações.
+                Adicione, edite ou remova cursos da plataforma.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Add notification preferences here */}
+              {/* Course management content */}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="security">
+        <TabsContent value="aulas">
           <Card>
             <CardHeader>
-              <CardTitle>Segurança da Conta</CardTitle>
+              <CardTitle>Gerenciar Aulas</CardTitle>
               <CardDescription>
-                Gerencie sua senha e configurações de segurança.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Senha Atual</Label>
-                <Input id="currentPassword" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">Nova Senha</Label>
-                <Input id="newPassword" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                <Input id="confirmPassword" type="password" />
-              </div>
-              <Button>Atualizar Senha</Button>
-            </CardContent>
-          </Card>
-
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Sessão</CardTitle>
-              <CardDescription>
-                Gerencie sua sessão atual.
+                Gerencie o conteúdo das aulas de cada curso.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="destructive" 
-                onClick={handleLogout}
-                className="w-full sm:w-auto"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </Button>
+              {/* Lesson management content */}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="appearance">
+        <TabsContent value="quiz">
           <Card>
             <CardHeader>
-              <CardTitle>Personalização</CardTitle>
+              <CardTitle>Gerenciar Quiz</CardTitle>
               <CardDescription>
-                Personalize a aparência da plataforma.
+                Configure questões e respostas para os quizzes dos cursos.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Add appearance settings here */}
+              {/* Quiz management content */}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="noticias">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Notícias</CardTitle>
+              <CardDescription>
+                Publique e gerencie notícias da plataforma.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* News management content */}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="destaques">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Destaques</CardTitle>
+              <CardDescription>
+                Configure os cursos e conteúdos em destaque.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Featured content management */}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ebooks">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar E-books</CardTitle>
+              <CardDescription>
+                Adicione e gerencie e-books disponíveis.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Ebook management content */}
             </CardContent>
           </Card>
         </TabsContent>

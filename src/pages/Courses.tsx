@@ -61,19 +61,23 @@ const CourseCard = ({ course, progress }: { course: Course; progress?: number })
   );
 };
 
-const categories = [
-  "All",
-  "Programming",
-  "Design",
-  "Business",
-  "Marketing",
-  "Data Science",
-];
-
 export default function Courses() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const session = useSession();
+
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+        
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ["courses"],
@@ -108,22 +112,24 @@ export default function Courses() {
   );
 
   const filteredCourses = courses.filter((course) => {
-    const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
+    const matchesCategory = selectedCategory === "Todos" || course.category === selectedCategory;
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
+  const isLoading = isLoadingCategories || isLoadingCourses;
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
       <div className="mb-8 space-y-6">
-        <h1 className="text-3xl font-bold">Explore Courses</h1>
+        <h1 className="text-3xl font-bold">Explore os Cursos</h1>
         
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             type="search"
-            placeholder="Search courses..."
+            placeholder="Buscar cursos..."
             className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -131,23 +137,33 @@ export default function Courses() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2">
+          <button
+            onClick={() => setSelectedCategory("Todos")}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              selectedCategory === "Todos"
+                ? "bg-primary text-white"
+                : "bg-card hover:bg-card-hover text-gray-300"
+            }`}
+          >
+            Todos
+          </button>
           {categories.map((category) => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
+              key={category.id}
+              onClick={() => setSelectedCategory(category.name)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                selectedCategory === category
+                selectedCategory === category.name
                   ? "bg-primary text-white"
                   : "bg-card hover:bg-card-hover text-gray-300"
               }`}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
       </div>
 
-      {isLoadingCourses ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <div
@@ -169,4 +185,4 @@ export default function Courses() {
       )}
     </div>
   );
-}
+};
