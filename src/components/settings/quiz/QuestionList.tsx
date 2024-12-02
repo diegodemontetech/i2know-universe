@@ -1,29 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { QuestionItem } from "./QuestionItem";
+import { QuestionPagination } from "./QuestionPagination";
 
 interface QuestionListProps {
   selectedCourseId: string;
@@ -41,7 +22,7 @@ const ITEMS_PER_PAGE = 5;
 export function QuestionList({ selectedCourseId }: QuestionListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: questionsData, isLoading } = useQuery({
     queryKey: ["questions", selectedCourseId],
@@ -145,82 +126,22 @@ export function QuestionList({ selectedCourseId }: QuestionListProps) {
     <div className="space-y-4">
       <div className="space-y-2">
         {paginatedQuestions.map((question) => (
-          <div
+          <QuestionItem
             key={question.id}
-            className="flex items-center justify-between p-4 bg-card rounded-lg border"
-          >
-            <div>
-              <h4 className="font-medium">{question.question}</h4>
-              <div className="mt-2 space-y-1">
-                {question.options.map((option: string, index: number) => (
-                  <p
-                    key={index}
-                    className={`text-sm ${
-                      option === question.correct_answer
-                        ? "text-green-500 font-medium"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    {option}
-                  </p>
-                ))}
-              </div>
-            </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir questão</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja excluir esta questão? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => deleteQuestionMutation.mutate(question.id)}
-                  >
-                    Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+            id={question.id}
+            question={question.question}
+            options={question.options}
+            correctAnswer={question.correct_answer}
+            onDelete={(id) => deleteQuestionMutation.mutate(id)}
+          />
         ))}
       </div>
 
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              />
-            </PaginationItem>
-            {[...Array(totalPages)].map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(i + 1)}
-                  isActive={currentPage === i + 1}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <QuestionPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
