@@ -100,7 +100,18 @@ export default function Index() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredNews.map((news) => (
-              <NewsCard key={news.id} news={news} />
+              <NewsCard
+                key={news.id}
+                title={news.title}
+                summary={news.summary}
+                category={news.category}
+                date={news.date}
+                image="https://source.unsplash.com/random/?news"
+                author={{
+                  name: "Autor",
+                  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${news.id}`,
+                }}
+              />
             ))}
           </div>
         </section>
