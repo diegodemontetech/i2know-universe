@@ -14,6 +14,16 @@ interface Course {
   duration: number;
 }
 
+interface News {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  date: string;
+  read_time: string;
+  featured_position: string;
+}
+
 const FeaturedCourse = ({ course }: { course: Course }) => (
   <div className="relative h-[70vh] w-full rounded-xl overflow-hidden mb-12">
     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
@@ -72,8 +82,32 @@ const CourseCard = ({ course }: { course: Course }) => (
   </div>
 );
 
+const NewsCard = ({ news }: { news: News }) => (
+  <Link to={`/noticias/${news.id}`} className="group relative overflow-hidden rounded-lg">
+    <div className="aspect-video w-full overflow-hidden">
+      <img
+        src="https://source.unsplash.com/random/?news"
+        alt={news.title}
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+      />
+    </div>
+    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div className="absolute bottom-0 p-4 text-white">
+        <span className="text-xs bg-primary px-2 py-1 rounded-full">{news.category}</span>
+        <h3 className="text-lg font-semibold mt-2">{news.title}</h3>
+        <p className="mt-2 text-sm text-gray-300 line-clamp-2">{news.summary}</p>
+        <div className="mt-3 flex items-center gap-2 text-sm text-gray-300">
+          <span>{new Date(news.date).toLocaleDateString()}</span>
+          <span>•</span>
+          <span>{news.read_time}</span>
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
 const Index = () => {
-  const { data: courses = [], isLoading } = useQuery({
+  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
       console.log("Fetching courses...");
@@ -91,7 +125,21 @@ const Index = () => {
     },
   });
 
-  if (isLoading) {
+  const { data: featuredNews = [], isLoading: isLoadingNews } = useQuery({
+    queryKey: ["featured-news"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .in("featured_position", ["home", "both"])
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data as News[];
+    },
+  });
+
+  if (isLoadingCourses || isLoadingNews) {
     return (
       <div className="space-y-8 animate-fade-in">
         <div className="h-[70vh] w-full rounded-xl bg-card animate-pulse" />
@@ -119,11 +167,16 @@ const Index = () => {
   const otherCourses = courses.slice(1, 5);
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-12 animate-fade-in">
       {featuredCourse && <FeaturedCourse course={featuredCourse} />}
       
       <section>
-        <h2 className="text-2xl font-semibold mb-6">Continue Aprendendo</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold">Continue Aprendendo</h2>
+          <Link to="/cursos" className="text-primary hover:text-primary/80 transition-colors">
+            Ver todos <ArrowRight className="inline-block w-4 h-4 ml-1" />
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {otherCourses.map((course) => (
             <Link to={`/cursos/${course.id}`} key={course.id}>
@@ -132,6 +185,22 @@ const Index = () => {
           ))}
         </div>
       </section>
+
+      {featuredNews.length > 0 && (
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">Notícias em Destaque</h2>
+            <Link to="/noticias" className="text-primary hover:text-primary/80 transition-colors">
+              Ver todas <ArrowRight className="inline-block w-4 h-4 ml-1" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredNews.map((news) => (
+              <NewsCard key={news.id} news={news} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

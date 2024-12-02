@@ -251,6 +251,7 @@ export type Database = {
           category: string
           created_at: string
           date: string
+          featured_position: string | null
           id: string
           read_time: string
           summary: string
@@ -261,6 +262,7 @@ export type Database = {
           category: string
           created_at?: string
           date?: string
+          featured_position?: string | null
           id?: string
           read_time: string
           summary: string
@@ -271,6 +273,7 @@ export type Database = {
           category?: string
           created_at?: string
           date?: string
+          featured_position?: string | null
           id?: string
           read_time?: string
           summary?: string
