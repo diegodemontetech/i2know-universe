@@ -17,16 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
-
-const levels = [
-  { name: "Aprendiz", threshold: 0, color: "bg-zinc-400" },
-  { name: "Explorador", threshold: 5, color: "bg-blue-400" },
-  { name: "Especialista", threshold: 10, color: "bg-green-400" },
-  { name: "Mestre", threshold: 25, color: "bg-purple-400" },
-  { name: "Sábio", threshold: 50, color: "bg-yellow-400" },
-  { name: "Gênio", threshold: 75, color: "bg-red-400" },
-  { name: "Lendário", threshold: 100, color: "bg-gradient-to-r from-purple-400 via-pink-500 to-red-500" },
-];
+import { LevelCard } from "@/components/journey/LevelCard";
 
 const socialNetworks = [
   { name: "LinkedIn", icon: Linkedin, color: "hover:bg-[#0077b5]", url: "https://www.linkedin.com/sharing/share-offsite/?url=" },
@@ -34,23 +25,39 @@ const socialNetworks = [
   { name: "Facebook", icon: Facebook, color: "hover:bg-[#1877F2]", url: "https://www.facebook.com/sharer/sharer.php?u=" },
 ];
 
-type CourseProgress = {
-  id: string;
-  user_id: string;
-  course_id: string;
-  progress: number;
-  courses?: {
-    title: string;
-    thumbnail_url: string | null;
-    category: string;
-  } | null;
-};
-
 export default function Journey() {
   const session = useSession();
   const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
 
-  const { data: certificates = [], isLoading } = useQuery({
+  const { data: profile } = useQuery({
+    queryKey: ["profile", session?.user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session?.user?.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!session?.user?.id,
+  });
+
+  const { data: levels = [] } = useQuery({
+    queryKey: ["levels"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("levels")
+        .select("*")
+        .order("min_points");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: certificates = [] } = useQuery({
     queryKey: ["user-certificates", session?.user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -67,34 +74,21 @@ export default function Journey() {
         .eq("progress", 100);
 
       if (error) throw error;
-      return data as CourseProgress[];
+      return data;
     },
     enabled: !!session?.user?.id,
   });
 
-  const totalCertificates = certificates?.length || 0;
-  const currentLevel = levels.reduce((acc, level) => 
-    totalCertificates >= level.threshold ? level : acc
+  const currentPoints = profile?.points || 0;
+  const currentLevel = levels.find(level => 
+    currentPoints >= level.min_points && 
+    (!level.max_points || currentPoints <= level.max_points)
   );
-  
-  const nextLevel = levels.find(level => level.threshold > totalCertificates);
-  const progress = nextLevel 
-    ? ((totalCertificates - currentLevel.threshold) / (nextLevel.threshold - currentLevel.threshold)) * 100
-    : 100;
 
   const handleShare = (network: typeof socialNetworks[0], certificateId: string) => {
     const shareUrl = `${window.location.origin}/certificates/${certificateId}`;
-    const shareText = encodeURIComponent("Confira minha conquista!");
     window.open(`${network.url}${shareUrl}`, "_blank");
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-xl">Carregando sua jornada...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -105,67 +99,80 @@ export default function Journey() {
         </p>
       </div>
 
+      {/* Current Level Card */}
       <Card className="border-none bg-gradient-to-br from-card via-card/50 to-card/30">
         <CardHeader className="text-center">
           <div className="mx-auto p-3 rounded-full bg-card inline-block mb-2">
             <Trophy className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Nível {currentLevel.name}</CardTitle>
+          <CardTitle className="text-2xl">Nível {currentLevel?.name}</CardTitle>
           <CardDescription>
-            {totalCertificates} certificado{totalCertificates !== 1 ? 's' : ''} conquistado{totalCertificates !== 1 ? 's' : ''}
+            {currentPoints.toLocaleString()} pontos conquistados
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Progress value={progress} className="h-2" />
-          {nextLevel && (
-            <p className="text-center text-sm text-muted-foreground">
-              Faltam {nextLevel.threshold - totalCertificates} certificados para o nível {nextLevel.name}
-            </p>
-          )}
-        </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {certificates?.map((certificate) => (
-          <Card 
-            key={certificate.id}
-            className="group relative overflow-hidden hover:shadow-lg transition-all duration-300"
-          >
-            <CardContent className="p-0">
-              <div className="relative aspect-video">
-                <img
-                  src={certificate.courses?.thumbnail_url || "/placeholder.svg"}
-                  alt={certificate.courses?.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-                  <TooltipProvider>
-                    {socialNetworks.map((network) => (
-                      <Tooltip key={network.name}>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => handleShare(network, certificate.id)}
-                            className={`p-2 rounded-full bg-white/10 ${network.color} transition-colors`}
-                          >
-                            <network.icon className="w-4 h-4 text-white" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Compartilhar no {network.name}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </TooltipProvider>
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold truncate">{certificate.courses?.title}</h3>
-                <p className="text-sm text-muted-foreground">{certificate.courses?.category}</p>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Level Progress Path */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {levels.map((level) => (
+          <LevelCard
+            key={level.id}
+            name={level.name}
+            icon={level.icon}
+            minPoints={level.min_points}
+            maxPoints={level.max_points}
+            currentPoints={currentPoints}
+            isCurrentLevel={currentLevel?.id === level.id}
+            isUnlocked={currentPoints >= level.min_points}
+          />
         ))}
       </div>
+
+      {/* Certificates Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Certificados Conquistados</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {certificates?.map((certificate) => (
+            <Card 
+              key={certificate.id}
+              className="group relative overflow-hidden hover:scale-105 hover:shadow-lg transition-all duration-300"
+            >
+              <CardContent className="p-0">
+                <div className="relative aspect-video">
+                  <img
+                    src={certificate.courses?.thumbnail_url || "/placeholder.svg"}
+                    alt={certificate.courses?.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                    <TooltipProvider>
+                      {socialNetworks.map((network) => (
+                        <Tooltip key={network.name}>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleShare(network, certificate.id)}
+                              className={`p-2 rounded-full bg-white/10 ${network.color} transition-colors`}
+                            >
+                              <network.icon className="w-4 h-4 text-white" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Compartilhar no {network.name}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </TooltipProvider>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold truncate">{certificate.courses?.title}</h3>
+                  <p className="text-sm text-muted-foreground">{certificate.courses?.category}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -19,10 +19,10 @@ export default {
     },
     extend: {
       colors: {
-        background: "#121212",
+        background: "#141414",
         sidebar: "#1d1d1d",
         primary: "#E50914",
-        secondary: "#FFFFFF",
+        secondary: "#333333",
         accent: "#564d4d",
         success: "#46d369",
         card: {
@@ -34,6 +34,9 @@ export default {
         "slide-up": "slideUp 0.5s ease-out",
         "fade-in": "fadeIn 0.5s ease-out",
         "scale-in": "scaleIn 0.3s ease-out",
+        "progress": "progress 1s ease-out forwards",
+        "level-up": "levelUp 0.5s ease-out",
+        "confetti": "confetti 5s ease-out forwards",
       },
       keyframes: {
         slideUp: {
@@ -47,6 +50,19 @@ export default {
         scaleIn: {
           "0%": { transform: "scale(0.95)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        progress: {
+          "0%": { strokeDasharray: "0 100" },
+          "100%": { strokeDasharray: "var(--progress) 100" },
+        },
+        levelUp: {
+          "0%": { transform: "scale(0.8) rotate(-10deg)", opacity: "0" },
+          "50%": { transform: "scale(1.2) rotate(5deg)", opacity: "0.8" },
+          "100%": { transform: "scale(1) rotate(0)", opacity: "1" },
+        },
+        confetti: {
+          "0%": { transform: "translateY(0) rotate(0)", opacity: "1" },
+          "100%": { transform: "translateY(100vh) rotate(720deg)", opacity: "0" },
         },
       },
       fontFamily: {
