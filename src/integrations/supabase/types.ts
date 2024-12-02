@@ -272,6 +272,33 @@ export type Database = {
           },
         ]
       }
+      daily_points: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          points: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          points: number
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          points?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ebooks: {
         Row: {
           author: string
@@ -358,6 +385,33 @@ export type Database = {
           },
         ]
       }
+      levels: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          max_points: number | null
+          min_points: number
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          icon: string
+          id?: string
+          max_points?: number | null
+          min_points: number
+          name: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          max_points?: number | null
+          min_points?: number
+          name?: string
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           category: string
@@ -401,7 +455,9 @@ export type Database = {
           created_at: string
           first_name: string | null
           id: string
+          last_login_points_date: string | null
           last_name: string | null
+          points: number
           role: string
           status: string
           updated_at: string
@@ -412,7 +468,9 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id: string
+          last_login_points_date?: string | null
           last_name?: string | null
+          points?: number
           role: string
           status?: string
           updated_at?: string
@@ -423,7 +481,9 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id?: string
+          last_login_points_date?: string | null
           last_name?: string | null
+          points?: number
           role?: string
           status?: string
           updated_at?: string
