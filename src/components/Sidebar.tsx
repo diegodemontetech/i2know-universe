@@ -93,8 +93,8 @@ export const Sidebar = () => {
 
       <div className="p-4 flex justify-center items-center">
         <div className={cn(
-          "transition-all duration-300",
-          isCollapsed ? "w-10" : "w-28"
+          "transition-all duration-300 flex justify-center items-center",
+          isCollapsed ? "w-8" : "w-28"
         )}>
           <img
             src={isCollapsed ? "https://i.ibb.co/qW3jGcW/i2know-1.png" : "https://i.ibb.co/yRKDrV7/i2know.png"}
