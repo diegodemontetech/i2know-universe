@@ -1,70 +1,110 @@
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
-const FeaturedCourse = () => (
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail_url: string;
+  category: string;
+  difficulty: string;
+  duration: number;
+}
+
+const FeaturedCourse = ({ course }: { course: Course }) => (
   <div className="relative h-[70vh] w-full rounded-xl overflow-hidden mb-12">
     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
     <img
-      src="/placeholder.svg"
-      alt="Featured Course"
+      src={course.thumbnail_url}
+      alt={course.title}
       className="w-full h-full object-cover"
     />
     <div className="absolute bottom-0 left-0 p-8 space-y-4">
       <div className="space-y-2">
         <span className="px-2 py-1 bg-primary/90 text-white text-sm rounded-md">
-          Featured
+          Em Destaque
         </span>
-        <h1 className="text-4xl font-bold">Master Modern Web Development</h1>
+        <h1 className="text-4xl font-bold">{course.title}</h1>
         <p className="text-lg text-gray-300 max-w-2xl">
-          Learn the latest technologies and best practices in web development
-          through hands-on projects and real-world examples.
+          {course.description}
         </p>
       </div>
       <div className="flex gap-4">
         <Button className="bg-primary hover:bg-primary/90">
-          <Play className="w-4 h-4 mr-2" /> Start Learning
+          <Play className="w-4 h-4 mr-2" /> Começar Agora
         </Button>
         <Button variant="outline">
-          Learn More <ArrowRight className="w-4 h-4 ml-2" />
+          Saiba Mais <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
     </div>
   </div>
 );
 
-const CourseCard = ({ title, description }: { title: string; description: string }) => (
+const CourseCard = ({ course }: { course: Course }) => (
   <div className="glass-card p-6 space-y-4 animate-scale-in">
     <div className="aspect-video rounded-lg overflow-hidden bg-card-hover">
       <img
-        src="/placeholder.svg"
-        alt={title}
+        src={course.thumbnail_url}
+        alt={course.title}
         className="w-full h-full object-cover"
       />
     </div>
     <div>
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-gray-400">{description}</p>
+      <h3 className="text-lg font-semibold">{course.title}</h3>
+      <p className="text-sm text-gray-400 line-clamp-2">{course.description}</p>
     </div>
-    <div className="h-1 w-full bg-gray-800 rounded">
-      <div className="h-full w-1/3 bg-success rounded" />
+    <div className="flex justify-between items-center text-sm text-gray-400">
+      <span>{course.category}</span>
+      <span>{Math.floor(course.duration / 60)}h {course.duration % 60}min</span>
     </div>
   </div>
 );
 
 const Index = () => {
-  return (
-    <div className="space-y-8 animate-fade-in">
-      <FeaturedCourse />
-      
-      <section>
-        <h2 className="text-2xl font-semibold mb-6">Continue Learning</h2>
+  const { data: courses = [], isLoading } = useQuery({
+    queryKey: ["courses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*")
+        .order("created_at", { ascending: false });
+        
+      if (error) throw error;
+      return data as Course[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="h-[70vh] w-full rounded-xl bg-card animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <CourseCard
-              key={i}
-              title={`Course ${i}`}
-              description="Learn essential skills and advance your career with our comprehensive courses."
-            />
+            <div key={i} className="aspect-video rounded-lg bg-card animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const featuredCourse = courses[0];
+  const otherCourses = courses.slice(1, 5);
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {featuredCourse && <FeaturedCourse course={featuredCourse} />}
+      
+      <section>
+        <h2 className="text-2xl font-semibold mb-6">Continue Aprendendo</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {otherCourses.map((course) => (
+            <Link to={`/cursos/${course.id}`} key={course.id}>
+              <CourseCard course={course} />
+            </Link>
           ))}
         </div>
       </section>

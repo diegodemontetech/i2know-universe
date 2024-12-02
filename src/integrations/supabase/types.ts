@@ -151,6 +151,81 @@ export type Database = {
           },
         ]
       }
+      ebooks: {
+        Row: {
+          author: string
+          categories: string[]
+          cover: string
+          created_at: string
+          id: string
+          pages: number
+          published_at: string
+          reading_time: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          categories: string[]
+          cover: string
+          created_at?: string
+          id?: string
+          pages: number
+          published_at: string
+          reading_time: string
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          categories?: string[]
+          cover?: string
+          created_at?: string
+          id?: string
+          pages?: number
+          published_at?: string
+          reading_time?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      news: {
+        Row: {
+          category: string
+          created_at: string
+          date: string
+          id: string
+          read_time: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          date?: string
+          id?: string
+          read_time: string
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date?: string
+          id?: string
+          read_time?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

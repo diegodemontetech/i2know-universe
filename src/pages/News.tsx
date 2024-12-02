@@ -1,45 +1,86 @@
-import { Newspaper } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+interface News {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  date: string;
+  read_time: string;
+}
+
+const NewsCard = ({ news }: { news: News }) => (
+  <Card className="hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <div className="flex justify-between items-start mb-2">
+        <Badge variant="secondary" className="bg-primary/10 text-primary">
+          {news.category}
+        </Badge>
+        <span className="text-sm text-gray-500">{news.read_time}</span>
+      </div>
+      <CardTitle className="line-clamp-2">{news.title}</CardTitle>
+      <CardDescription>
+        {new Date(news.date).toLocaleDateString('pt-BR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        })}
+      </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p className="text-gray-600 line-clamp-3">{news.summary}</p>
+    </CardContent>
+  </Card>
+);
 
 const News = () => {
-  const news = [
-    {
-      id: 1,
-      title: "Nova Atualização da Plataforma",
-      summary: "Confira as novidades e melhorias implementadas na última atualização",
-      date: "2024-03-10",
-      category: "Plataforma",
-      readTime: "5 min",
+  const { data: news = [], isLoading } = useQuery({
+    queryKey: ["news"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .order("date", { ascending: false });
+        
+      if (error) throw error;
+      return data as News[];
     },
-    // Add more news here
-  ];
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader>
+              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2" />
+              <div className="h-6 bg-gray-200 rounded w-3/4" />
+              <div className="h-4 bg-gray-200 rounded w-1/3" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full" />
+                <div className="h-4 bg-gray-200 rounded w-5/6" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Notícias</h1>
+        <h1 className="text-2xl font-bold">Notícias e Atualizações</h1>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {news.map((item) => (
-          <Card key={item.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{item.title}</CardTitle>
-                  <CardDescription>
-                    {new Date(item.date).toLocaleDateString('pt-BR')} • {item.readTime} de leitura
-                  </CardDescription>
-                </div>
-                <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                  {item.category}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">{item.summary}</p>
-            </CardContent>
-          </Card>
+          <NewsCard key={item.id} news={item} />
         ))}
       </div>
     </div>
