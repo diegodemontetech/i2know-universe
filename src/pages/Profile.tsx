@@ -10,13 +10,19 @@ const Profile = () => {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
+      console.log("Fetching profile for user:", session?.user?.id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*, companies(*)")
         .eq("id", session?.user?.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+      
+      console.log("Profile data:", data);
       return data;
     },
     enabled: !!session?.user?.id,
@@ -48,7 +54,9 @@ const Profile = () => {
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-400">Nome</label>
-            <p className="text-lg">{profile?.first_name} {profile?.last_name}</p>
+            <p className="text-lg">
+              {profile?.first_name || ''} {profile?.last_name || ''}
+            </p>
           </div>
           
           <div>
@@ -58,7 +66,7 @@ const Profile = () => {
           
           <div>
             <label className="text-sm font-medium text-gray-400">Função</label>
-            <p className="text-lg capitalize">{profile?.role}</p>
+            <p className="text-lg capitalize">{profile?.role || 'user'}</p>
           </div>
 
           {profile?.company_id && (
