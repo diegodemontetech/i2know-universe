@@ -12,9 +12,17 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1.5rem',
+        lg: '2rem'
+      },
       screens: {
-        "2xl": "1400px",
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1400px',
       },
     },
     extend: {
@@ -29,6 +37,21 @@ export default {
           DEFAULT: "rgba(32, 32, 32, 0.8)",
           hover: "rgba(42, 42, 42, 0.9)",
         },
+      },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+      height: {
+        screen: ['100vh /* fallback */', '100dvh'],
+      },
+      minHeight: {
+        screen: ['100vh /* fallback */', '100dvh'],
+      },
+      maxHeight: {
+        screen: ['100vh /* fallback */', '100dvh'],
       },
       animation: {
         "slide-up": "slideUp 0.5s ease-out",
@@ -67,6 +90,13 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+      },
+      fontSize: {
+        'fluid-sm': 'clamp(0.875rem, 1.5vw, 1rem)',
+        'fluid-base': 'clamp(1rem, 2vw, 1.125rem)',
+        'fluid-lg': 'clamp(1.125rem, 2.5vw, 1.25rem)',
+        'fluid-xl': 'clamp(1.25rem, 3vw, 1.5rem)',
+        'fluid-2xl': 'clamp(1.5rem, 4vw, 2rem)',
       },
     },
   },

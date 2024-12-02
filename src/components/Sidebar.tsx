@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { SidebarNavigation } from "./sidebar/SidebarNavigation";
 import { SidebarProfile } from "./sidebar/SidebarProfile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const useProfile = () => {
   const session = useSession();
@@ -40,6 +41,13 @@ export const Sidebar = () => {
   const session = useSession();
   const { data: profile, isLoading } = useProfile();
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (isMobile) {
+      setIsCollapsed(true);
+    }
+  }, [isMobile]);
 
   console.log("Current user role:", profile?.role);
 
@@ -59,24 +67,29 @@ export const Sidebar = () => {
     }
   };
 
+  const sidebarWidth = isCollapsed ? 'w-[4.5rem]' : 'w-64';
+
   return (
     <aside 
       className={cn(
-        "bg-sidebar min-h-screen flex flex-col fixed left-0 top-0 bottom-0 transition-all duration-300",
-        isCollapsed ? "w-20" : "w-64"
+        "bg-sidebar min-h-screen flex flex-col fixed left-0 top-0 bottom-0 transition-all duration-300 z-50",
+        sidebarWidth,
+        isMobile && "shadow-xl"
       )}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border border-white/10 bg-sidebar text-gray-400 hover:text-white shadow-md"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        {isCollapsed ? 
-          <ChevronRight className="h-3 w-3" /> : 
-          <ChevronLeft className="h-3 w-3" />
-        }
-      </Button>
+      {!isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border border-white/10 bg-sidebar text-gray-400 hover:text-white shadow-md"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? 
+            <ChevronRight className="h-3 w-3" /> : 
+            <ChevronLeft className="h-3 w-3" />
+          }
+        </Button>
+      )}
 
       <div className="p-4 flex justify-center items-center">
         <div className={cn(

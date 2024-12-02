@@ -5,8 +5,47 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sidebar-width: 16rem;
+    --sidebar-width-collapsed: 4.5rem;
+    --header-height: 4rem;
+  }
+
+  html {
+    @apply text-base antialiased;
+    font-size: clamp(14px, 1vw, 16px);
+  }
+
   body {
-    @apply bg-background text-white font-sans antialiased;
+    @apply bg-background text-white font-sans min-h-screen overflow-x-hidden;
+  }
+
+  /* Improve touch targets on mobile */
+  @media (max-width: 640px) {
+    button, a, input, select, textarea {
+      @apply min-h-[44px] min-w-[44px];
+    }
+  }
+
+  /* Improve text readability */
+  p {
+    @apply text-base leading-relaxed;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+  }
+
+  h1 {
+    @apply text-3xl font-bold;
+    font-size: clamp(1.875rem, 4vw, 2.25rem);
+  }
+
+  h2 {
+    @apply text-2xl font-semibold;
+    font-size: clamp(1.5rem, 3vw, 1.875rem);
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   }
 }
 
@@ -21,6 +60,7 @@
 
   .nav-link {
     @apply flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-white/10;
+    min-height: 44px;
   }
 
   .nav-link.active {
@@ -30,8 +70,54 @@
   .hero-gradient {
     background: linear-gradient(to bottom, transparent 0%, rgba(18, 18, 18, 0.8) 50%, #121212 100%);
   }
+
+  /* Responsive grid layouts */
+  .responsive-grid {
+    @apply grid gap-4 w-full;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  .responsive-grid-lg {
+    @apply grid gap-6 w-full;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  }
+
+  /* Fluid spacing utilities */
+  .fluid-p {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .fluid-m {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+
+  .fluid-gap {
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
 }
 
+/* Responsive images */
+img {
+  @apply max-w-full h-auto object-cover;
+}
+
+/* Maintain aspect ratios for media content */
+.media-container {
+  @apply relative w-full;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.media-container > * {
+  @apply absolute top-0 left-0 w-full h-full;
+}
+
+/* Optimize scrolling */
+.smooth-scroll {
+  @apply scroll-smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Page transitions */
 .page-transition-enter {
   opacity: 0;
   transform: translateY(20px);
