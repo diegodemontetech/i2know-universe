@@ -2,9 +2,36 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
+// Define the YouTube IFrame API types
 declare global {
   interface Window {
-    YT: typeof YT;
+    YT: {
+      Player: new (
+        elementId: string,
+        config: {
+          height: string | number;
+          width: string | number;
+          videoId: string;
+          playerVars?: {
+            autoplay?: number;
+            controls?: number;
+            modestbranding?: number;
+            rel?: number;
+          };
+          events?: {
+            onStateChange?: (event: { data: number }) => void;
+          };
+        }
+      ) => {
+        destroy: () => void;
+        getCurrentTime: () => number;
+        getDuration: () => number;
+      };
+      PlayerState: {
+        PLAYING: number;
+        PAUSED: number;
+      };
+    };
     onYouTubeIframeAPIReady: () => void;
   }
 }

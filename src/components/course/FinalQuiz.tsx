@@ -13,6 +13,15 @@ interface FinalQuizProps {
   onComplete: () => void;
 }
 
+interface QuizQuestion {
+  id: string;
+  quiz_id: string;
+  question: string;
+  options: string[];
+  correct_answer: string;
+  created_at: string;
+}
+
 export function FinalQuiz({ courseId, onComplete }: FinalQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -37,7 +46,7 @@ export function FinalQuiz({ courseId, onComplete }: FinalQuizProps) {
         .order("created_at");
 
       if (error) throw error;
-      return data;
+      return data as QuizQuestion[];
     },
   });
 
