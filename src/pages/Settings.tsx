@@ -5,6 +5,8 @@ import { CategorySettings } from "@/components/settings/CategorySettings";
 import { EbookSettings } from "@/components/settings/EbookSettings";
 import { NewsSettings } from "@/components/settings/NewsSettings";
 import { CertificateSettings } from "@/components/settings/CertificateSettings";
+import { LessonSettings } from "@/components/settings/lessons/LessonSettings";
+import { QuizSettings } from "@/components/settings/quiz/QuizSettings";
 
 const Settings = () => {
   return (
@@ -21,6 +23,8 @@ const Settings = () => {
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="courses">Cursos</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="lessons">Aulas</TabsTrigger>
+          <TabsTrigger value="quiz">Quiz</TabsTrigger>
           <TabsTrigger value="ebooks">E-books</TabsTrigger>
           <TabsTrigger value="news">Notícias</TabsTrigger>
           <TabsTrigger value="certificates">Certificados</TabsTrigger>
@@ -34,6 +38,12 @@ const Settings = () => {
         <TabsContent value="categories" className="space-y-4">
           <CategorySettings />
         </TabsContent>
+        <TabsContent value="lessons" className="space-y-4">
+          <LessonSettings />
+        </TabsContent>
+        <TabsContent value="quiz" className="space-y-4">
+          <QuizSettings />
+        </TabsContent>
         <TabsContent value="ebooks" className="space-y-4">
           <EbookSettings />
         </TabsContent>
@@ -46,6 +56,6 @@ const Settings = () => {
       </Tabs>
     </div>
   );
-};
+}
 
 export default Settings;
