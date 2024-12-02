@@ -3,8 +3,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { QuestionItem } from "./QuestionItem";
 import { QuestionPagination } from "./QuestionPagination";
+import { QuizPreview } from "./QuizPreview";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface QuestionListProps {
   selectedCourseId: string;
@@ -124,6 +133,22 @@ export function QuestionList({ selectedCourseId }: QuestionListProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              Visualizar Quiz
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Preview do Quiz</DialogTitle>
+            </DialogHeader>
+            <QuizPreview questions={questionsData.questions} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <div className="space-y-2">
         {paginatedQuestions.map((question) => (
           <QuestionItem
@@ -133,6 +158,7 @@ export function QuestionList({ selectedCourseId }: QuestionListProps) {
             options={question.options}
             correctAnswer={question.correct_answer}
             onDelete={(id) => deleteQuestionMutation.mutate(id)}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ["questions"] })}
           />
         ))}
       </div>
