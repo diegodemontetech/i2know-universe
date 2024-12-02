@@ -3,6 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserSettings } from "@/components/settings/UserSettings";
 import { CategorySettings } from "@/components/settings/CategorySettings";
+import { CourseSettings } from "@/components/settings/CourseSettings";
+import { LessonSettings } from "@/components/settings/LessonSettings";
+import { QuizSettings } from "@/components/settings/QuizSettings";
+import { NewsSettings } from "@/components/settings/NewsSettings";
+import { EbookSettings } from "@/components/settings/EbookSettings";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("usuarios");
@@ -65,50 +70,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Input
-                    placeholder="Buscar cursos..."
-                    className="max-w-sm"
-                  />
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Curso
-                  </Button>
-                </div>
-
-                <div className="grid gap-4">
-                  {courses.map((course) => (
-                    <div
-                      key={course.id}
-                      className="flex items-center justify-between p-4 bg-card rounded-lg border"
-                    >
-                      <div className="space-y-1">
-                        <h4 className="font-medium">{course.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {course.description}
-                        </p>
-                        <div className="flex gap-2">
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                            {course.categories?.name}
-                          </span>
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                            {course.difficulty}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="destructive" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CourseSettings />
             </CardContent>
           </Card>
         </TabsContent>
@@ -122,32 +84,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Select>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Selecione o curso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Aula
-                  </Button>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <p className="text-muted-foreground text-center">
-                    Selecione um curso para gerenciar suas aulas
-                  </p>
-                </div>
-              </div>
+              <LessonSettings />
             </CardContent>
           </Card>
         </TabsContent>
@@ -161,32 +98,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Select>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Selecione o curso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Questão
-                  </Button>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <p className="text-muted-foreground text-center">
-                    Selecione um curso para gerenciar seu quiz
-                  </p>
-                </div>
-              </div>
+              <QuizSettings />
             </CardContent>
           </Card>
         </TabsContent>
@@ -200,51 +112,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Input
-                    placeholder="Buscar notícias..."
-                    className="max-w-sm"
-                  />
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Notícia
-                  </Button>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <form className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Título</Label>
-                      <Input id="title" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="summary">Resumo</Label>
-                      <Textarea id="summary" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Categoria</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="read_time">Tempo de Leitura</Label>
-                      <Input id="read_time" placeholder="Ex: 5 min" />
-                    </div>
-                    <Button type="submit">Publicar Notícia</Button>
-                  </form>
-                </div>
-              </div>
+              <NewsSettings />
             </CardContent>
           </Card>
         </TabsContent>
@@ -262,17 +130,7 @@ const Settings = () => {
                 <div className="border rounded-lg p-4">
                   <h3 className="font-medium mb-4">Cursos em Destaque</h3>
                   <div className="space-y-2">
-                    {courses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="flex items-center justify-between p-2 bg-card rounded border"
-                      >
-                        <span>{course.title}</span>
-                        <Button variant="outline" size="sm">
-                          Destacar
-                        </Button>
-                      </div>
-                    ))}
+                    {/* Highlighted courses will be implemented later */}
                   </div>
                 </div>
               </div>
@@ -289,56 +147,7 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Input
-                    placeholder="Buscar e-books..."
-                    className="max-w-sm"
-                  />
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo E-book
-                  </Button>
-                </div>
-
-                <div className="border rounded-lg p-4">
-                  <form className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="ebook-title">Título</Label>
-                      <Input id="ebook-title" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="author">Autor</Label>
-                      <Input id="author" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="summary">Resumo</Label>
-                      <Textarea id="summary" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="pages">Número de Páginas</Label>
-                        <Input id="pages" type="number" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="reading_time">Tempo de Leitura</Label>
-                        <Input id="reading_time" placeholder="Ex: 2 horas" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cover">Capa</Label>
-                      <div className="flex items-center gap-4">
-                        <Input id="cover" type="file" accept="image/*" />
-                        <Button type="button" variant="outline">
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload
-                        </Button>
-                      </div>
-                    </div>
-                    <Button type="submit">Publicar E-book</Button>
-                  </form>
-                </div>
-              </div>
+              <EbookSettings />
             </CardContent>
           </Card>
         </TabsContent>
