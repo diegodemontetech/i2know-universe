@@ -13,6 +13,7 @@ import CompanySettings from "./pages/CompanySettings";
 import Users from "./pages/Users";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Courses from "./pages/Courses";
 import { useSession, SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="usuarios" element={<Users />} />
               <Route path="perfil" element={<Profile />} />
               <Route path="configuracoes" element={<Settings />} />
+              <Route path="cursos" element={<Courses />} />
             </Route>
           </Routes>
         </BrowserRouter>

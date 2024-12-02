@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -30,6 +30,7 @@ const navigation = [
   { name: "Início", icon: Home, path: "/" },
   { name: "Empresas", icon: Building2, path: "/empresas", adminOnly: true },
   { name: "Usuários", icon: Users, path: "/usuarios" },
+  { name: "Cursos", icon: GraduationCap, path: "/cursos" },
   { name: "Perfil", icon: User, path: "/perfil" },
   { name: "Configurações", icon: Settings, path: "/configuracoes" },
 ];
