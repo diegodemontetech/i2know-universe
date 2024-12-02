@@ -1,26 +1,36 @@
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Lesson {
-  id: string;
-  title: string;
-  description: string | null;
-  youtube_url: string | null;
-  order_index: number;
-  support_materials: any[];
-  quizzes: any[];
-}
-
 interface LessonListProps {
-  lessons: Lesson[];
-  onUpdate: () => void;
+  selectedCourseId: string;
 }
 
-export function LessonList({ lessons, onUpdate }: LessonListProps) {
+export function LessonList({ selectedCourseId }: LessonListProps) {
   const { toast } = useToast();
+
+  const { data: lessons = [], isLoading } = useQuery({
+    queryKey: ["lessons", selectedCourseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lessons")
+        .select(`
+          *,
+          support_materials(*),
+          quizzes(
+            *,
+            quiz_questions(*)
+          )
+        `)
+        .eq("course_id", selectedCourseId)
+        .order("order_index");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedCourseId,
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -32,7 +42,6 @@ export function LessonList({ lessons, onUpdate }: LessonListProps) {
     },
     onSuccess: () => {
       toast({ title: "Aula excluída com sucesso!" });
-      onUpdate();
     },
     onError: (error) => {
       toast({
@@ -48,6 +57,26 @@ export function LessonList({ lessons, onUpdate }: LessonListProps) {
       deleteMutation.mutate(id);
     }
   };
+
+  if (!selectedCourseId) {
+    return (
+      <div className="border rounded-lg p-4">
+        <p className="text-muted-foreground text-center">
+          Selecione um curso para gerenciar suas aulas
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="border rounded-lg p-4">
+        <p className="text-muted-foreground text-center">
+          Carregando aulas...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
