@@ -69,7 +69,7 @@ export default function Index() {
   return (
     <div className="space-y-12 animate-fade-in">
       {featuredCourse && (
-        <div className="relative h-[70vh] w-full rounded-xl overflow-hidden">
+        <div className="relative h-[60vh] w-full rounded-xl overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
           <img
             src={featuredCourse.thumbnail_url || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"}
@@ -97,7 +97,6 @@ export default function Index() {
         </div>
       )}
 
-      {/* Category Filters */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">Categorias</h2>
@@ -129,7 +128,7 @@ export default function Index() {
         </ScrollArea>
       </div>
 
-      <div className="space-y-12">
+      <div className="space-y-16">
         {filteredCategories.map((category) => (
           <CategorySection
             key={category.id}
@@ -141,13 +140,13 @@ export default function Index() {
 
       {featuredNews.length > 0 && (
         <section>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-semibold">Notícias em Destaque</h2>
             <Link to="/noticias" className="text-primary hover:text-primary/80 transition-colors">
               Ver todas <ArrowRight className="inline-block w-4 h-4 ml-1" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {featuredNews.map((news) => (
               <NewsCard
                 key={news.id}

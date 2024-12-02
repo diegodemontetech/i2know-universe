@@ -76,12 +76,12 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
       </div>
-      <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-lg font-semibold">{course.title}</h3>
-        <p className="mt-2 text-sm text-gray-300 line-clamp-2">
+      <div className="flex flex-col flex-1 p-6">
+        <h3 className="text-xl font-semibold">{course.title}</h3>
+        <p className="mt-3 text-base text-gray-300 line-clamp-2">
           {course.description}
         </p>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2">
           <span className="text-sm bg-white/20 px-2 py-1 rounded">
             {course.difficulty}
           </span>
@@ -92,7 +92,7 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
         
         {showProgress && (
           <ProgressFooter
-            className="mt-4"
+            className="mt-6"
             metrics={{
               hoursRemaining: Math.ceil((course.duration * (100 - (progress?.progress || 0))) / 6000),
               totalLessons: lessons.length,
@@ -102,9 +102,9 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
           />
         )}
 
-        <Link to={`/cursos/${course.id}`} className="mt-4">
-          <Button variant="secondary" size="sm" className="w-full bg-primary hover:bg-primary/90 text-white">
-            <Eye className="w-4 h-4 mr-2" />
+        <Link to={`/cursos/${course.id}`} className="mt-6">
+          <Button variant="secondary" size="lg" className="w-full bg-primary hover:bg-primary/90 text-white">
+            <Eye className="w-5 h-5 mr-2" />
             Ver Curso
           </Button>
         </Link>

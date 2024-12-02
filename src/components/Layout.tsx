@@ -12,8 +12,8 @@ export const Layout = () => {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 transition-all duration-300 ml-[4.5rem] lg:ml-64 bg-background">
-          <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-            <div className="container mx-auto">
+          <div className="min-h-screen p-2 sm:p-4">
+            <div className="container mx-auto max-w-[1920px]">
               <Outlet />
             </div>
           </div>
