@@ -6,30 +6,13 @@ import { Progress } from "@/components/ui/progress";
 declare global {
   interface Window {
     YT: {
-      Player: new (
-        elementId: string,
-        config: {
-          height: string | number;
-          width: string | number;
-          videoId: string;
-          playerVars?: {
-            autoplay?: number;
-            controls?: number;
-            modestbranding?: number;
-            rel?: number;
-          };
-          events?: {
-            onStateChange?: (event: { data: number }) => void;
-          };
-        }
-      ) => {
-        destroy: () => void;
-        getCurrentTime: () => number;
-        getDuration: () => number;
-      };
+      Player: any;
       PlayerState: {
         PLAYING: number;
         PAUSED: number;
+        ENDED: number;
+        BUFFERING: number;
+        CUED: number;
       };
     };
     onYouTubeIframeAPIReady: () => void;
@@ -43,7 +26,7 @@ interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ youtubeUrl, onComplete, isLastLesson }: VideoPlayerProps) {
-  const playerRef = useRef<YT.Player | null>(null);
+  const playerRef = useRef<any>(null);
   const [progress, setProgress] = useState(0);
   const [canComplete, setCanComplete] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -71,7 +54,7 @@ export function VideoPlayer({ youtubeUrl, onComplete, isLastLesson }: VideoPlaye
           rel: 0,
         },
         events: {
-          onStateChange: (event) => {
+          onStateChange: (event: { data: number }) => {
             setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
             
             if (event.data === window.YT.PlayerState.PLAYING) {
