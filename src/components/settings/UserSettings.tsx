@@ -64,10 +64,13 @@ export function UserSettings() {
     mutationFn: async (values: z.infer<typeof userFormSchema>) => {
       console.log("Creating user with values:", values);
       
+      // Generate a temporary password
+      const temporaryPassword = Math.random().toString(36).slice(-8);
+      
       // First create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
-        password: "temporary123", // You should implement a proper password system
+        password: temporaryPassword,
         options: {
           data: {
             first_name: values.first_name,
@@ -88,12 +91,33 @@ export function UserSettings() {
         .eq("id", authData.user!.id);
 
       if (profileError) throw profileError;
+
+      // Send welcome email
+      const { error: emailError } = await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email: values.email,
+          first_name: values.first_name,
+          password: temporaryPassword,
+        },
+      });
+
+      if (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // We don't throw here because the user was created successfully
+        // Just log the error and show a warning to the admin
+        toast({
+          title: "Usuário criado",
+          description: "O usuário foi criado mas houve um erro ao enviar o email de boas-vindas.",
+          variant: "warning",
+        });
+        return;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
         title: "Usuário criado",
-        description: "O usuário foi criado com sucesso.",
+        description: "O usuário foi criado e receberá um email com as credenciais de acesso.",
       });
       setIsDialogOpen(false);
       form.reset();
