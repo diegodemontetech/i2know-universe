@@ -5,6 +5,7 @@ import { Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CategoryFilters } from "@/components/common/CategoryFilters";
+import { SearchCommand } from "@/components/search/SearchCommand";
 import { useState } from "react";
 
 export default function Courses() {
@@ -59,7 +60,10 @@ export default function Courses() {
       <h1 className="text-2xl font-bold mb-6">Cursos</h1>
       
       <div className="mb-8">
-        <CategoryFilters onCategoriesChange={setSelectedCategories} />
+        <div className="flex flex-col gap-4">
+          <SearchCommand />
+          <CategoryFilters onCategoriesChange={setSelectedCategories} />
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

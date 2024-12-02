@@ -4,6 +4,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryFilters } from "@/components/common/CategoryFilters";
+import { SearchCommand } from "@/components/search/SearchCommand";
 import { useState } from "react";
 import { BookReader } from "@/components/ebooks/BookReader";
 import { ReadingProgress } from "@/components/ebooks/ReadingProgress";
@@ -85,7 +86,10 @@ export default function Ebooks() {
       <h1 className="text-2xl font-bold mb-4">E-books</h1>
 
       <div className="mb-8">
-        <CategoryFilters onCategoriesChange={setSelectedCategories} />
+        <div className="flex flex-col gap-4">
+          <SearchCommand />
+          <CategoryFilters onCategoriesChange={setSelectedCategories} />
+        </div>
       </div>
 
       {filteredEbooks.length === 0 ? (
