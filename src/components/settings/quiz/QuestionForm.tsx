@@ -9,10 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
 const questionFormSchema = z.object({
-  question: z.string().min(2, "A pergunta deve ter pelo menos 2 caracteres"),
-  options: z.array(z.string()).min(2, "Adicione pelo menos 2 opções"),
+  question: z.string()
+    .min(10, "A pergunta deve ter pelo menos 10 caracteres")
+    .max(500, "A pergunta não pode ter mais de 500 caracteres"),
+  options: z.array(z.string()
+    .min(1, "A opção não pode estar vazia")
+    .max(200, "A opção não pode ter mais de 200 caracteres"))
+    .min(2, "Adicione pelo menos 2 opções")
+    .max(5, "Máximo de 5 opções permitidas"),
   correctAnswer: z.string().min(1, "Selecione a resposta correta"),
 });
 
@@ -34,6 +41,7 @@ export function QuestionForm({ quizId, onSuccess }: QuestionFormProps) {
 
   const createQuestionMutation = useMutation({
     mutationFn: async (values: z.infer<typeof questionFormSchema>) => {
+      console.log("Creating question:", values);
       const { data, error } = await supabase
         .from("quiz_questions")
         .insert([
@@ -134,8 +142,19 @@ export function QuestionForm({ quizId, onSuccess }: QuestionFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Criar Questão
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={createQuestionMutation.isPending}
+        >
+          {createQuestionMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Criando...
+            </>
+          ) : (
+            "Criar Questão"
+          )}
         </Button>
       </form>
     </Form>
