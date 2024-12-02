@@ -281,6 +281,47 @@ export type Database = {
         }
         Relationships: []
       }
+      lessons: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          order_index: number
+          title: string
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index: number
+          title: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           category: string
@@ -326,6 +367,7 @@ export type Database = {
           id: string
           last_name: string | null
           role: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -336,6 +378,7 @@ export type Database = {
           id: string
           last_name?: string | null
           role: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -346,6 +389,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           role?: string
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -354,6 +398,165 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          id: string
+          options: Json
+          question: string
+          quiz_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          id?: string
+          options: Json
+          question: string
+          quiz_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          options?: Json
+          question?: string
+          quiz_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_responses: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string | null
+          quiz_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          question_id?: string | null
+          quiz_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string | null
+          quiz_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          lesson_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lesson_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          lesson_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_materials: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_url: string | null
+          id: string
+          lesson_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          lesson_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          lesson_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_materials_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
