@@ -103,7 +103,7 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
         )}
 
         <Link to={`/cursos/${course.id}`} className="mt-4">
-          <Button variant="secondary" size="sm" className="w-full">
+          <Button variant="secondary" size="sm" className="w-full bg-primary hover:bg-primary/90 text-white">
             <Eye className="w-4 h-4 mr-2" />
             Ver Curso
           </Button>
