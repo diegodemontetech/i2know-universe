@@ -25,6 +25,8 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
   const { data: progress } = useQuery({
     queryKey: ["course-progress", course.id, session?.user?.id],
     queryFn: async () => {
+      console.log("Fetching progress for course:", course.id, "user:", session?.user?.id);
+      
       const { data, error } = await supabase
         .from("course_progress")
         .select("progress")
@@ -32,10 +34,15 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
         .eq("user_id", session?.user?.id)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching progress:", error);
+        throw error;
+      }
+      
+      console.log("Progress data:", data);
       return data;
     },
-    enabled: !!session?.user?.id,
+    enabled: !!session?.user?.id && showProgress,
   });
 
   return (
