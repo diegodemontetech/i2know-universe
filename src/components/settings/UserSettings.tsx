@@ -17,12 +17,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Profile = {
   id: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: string;
+  avatar_url?: string | null;
+  company_id?: string | null;
+};
+
+type ProfileFormData = {
   first_name: string;
   last_name: string;
   role: string;
 };
-
-type ProfileFormData = Omit<Profile, 'id'>;
 
 const initialFormData: ProfileFormData = {
   first_name: "",
@@ -45,7 +51,7 @@ export function UserSettings() {
         .from("profiles")
         .select("*");
       if (error) throw error;
-      return data;
+      return data as Profile[];
     },
   });
 
@@ -53,7 +59,7 @@ export function UserSettings() {
     mutationFn: async (newProfile: ProfileFormData) => {
       const { data, error } = await supabase
         .from("profiles")
-        .insert([newProfile])
+        .insert([{ ...newProfile, id: crypto.randomUUID() }])
         .select()
         .single();
       if (error) throw error;
@@ -129,7 +135,7 @@ export function UserSettings() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProfile) {
-      updateMutation.mutate({ ...formData, id: editingProfile.id });
+      updateMutation.mutate({ ...editingProfile, ...formData });
     } else {
       createMutation.mutate(formData);
     }
@@ -137,7 +143,11 @@ export function UserSettings() {
 
   const handleEdit = (profile: Profile) => {
     setEditingProfile(profile);
-    setFormData(profile);
+    setFormData({
+      first_name: profile.first_name || "",
+      last_name: profile.last_name || "",
+      role: profile.role,
+    });
     setIsOpen(true);
   };
 

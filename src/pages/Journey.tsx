@@ -34,18 +34,30 @@ const socialNetworks = [
   { name: "Facebook", icon: Facebook, color: "hover:bg-[#1877F2]", url: "https://www.facebook.com/sharer/sharer.php?u=" },
 ];
 
+type CourseProgress = {
+  id: string;
+  user_id: string;
+  course_id: string;
+  progress: number;
+  courses?: {
+    title: string;
+    thumbnail_url: string | null;
+    category: string;
+  } | null;
+};
+
 export default function Journey() {
   const session = useSession();
   const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
 
-  const { data: certificates, isLoading } = useQuery({
+  const { data: certificates = [], isLoading } = useQuery({
     queryKey: ["user-certificates", session?.user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("course_progress")
         .select(`
           *,
-          courses:course_id (
+          courses (
             title,
             thumbnail_url,
             category
@@ -55,8 +67,9 @@ export default function Journey() {
         .eq("progress", 100);
 
       if (error) throw error;
-      return data;
+      return data as CourseProgress[];
     },
+    enabled: !!session?.user?.id,
   });
 
   const totalCertificates = certificates?.length || 0;
