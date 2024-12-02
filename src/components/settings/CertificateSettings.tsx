@@ -95,7 +95,10 @@ export function CertificateSettings() {
     mutationFn: async (data: Partial<CertificateTemplate>) => {
       const { error } = await supabase
         .from('certificates')
-        .upsert([data]);
+        .upsert({
+          ...data,
+          template_image_url: previewImage || '', // Add required field
+        });
         
       if (error) throw error;
     },
