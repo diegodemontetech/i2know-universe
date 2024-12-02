@@ -121,6 +121,28 @@ export default function CourseDetails() {
     },
   });
 
+  const handleLessonComplete = () => {
+    if (!lessons.length) return;
+    
+    const totalLessons = lessons.length;
+    const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson?.id);
+    const newProgress = Math.round(((currentIndex + 1) / totalLessons) * 100);
+    
+    updateProgressMutation.mutate(newProgress);
+
+    // Se for a última aula, redirecionar para o quiz final
+    if (currentIndex === lessons.length - 1) {
+      // TODO: Implementar redirecionamento para o quiz final
+      toast({
+        title: "Curso concluído!",
+        description: "Parabéns! Agora você pode fazer o quiz final.",
+      });
+    } else {
+      // Avança para a próxima aula
+      setSelectedLesson(lessons[currentIndex + 1]);
+    }
+  };
+
   useEffect(() => {
     if (lessons.length > 0 && !selectedLesson) {
       setSelectedLesson(lessons[0]);
@@ -150,27 +172,13 @@ export default function CourseDetails() {
     );
   }
 
-  const handleLessonComplete = () => {
-    if (!lessons.length) return;
-    
-    const totalLessons = lessons.length;
-    const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson?.id);
-    const newProgress = Math.round(((currentIndex + 1) / totalLessons) * 100);
-    
-    updateProgressMutation.mutate(newProgress);
-
-    // Avança para a próxima aula se existir
-    if (currentIndex < lessons.length - 1) {
-      setSelectedLesson(lessons[currentIndex + 1]);
-    }
-  };
-
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       <div className="flex-1 bg-black rounded-lg overflow-hidden">
         <VideoPlayer
           youtubeUrl={selectedLesson?.youtube_url}
           onComplete={handleLessonComplete}
+          isLastLesson={selectedLesson && lessons.indexOf(selectedLesson) === lessons.length - 1}
         />
       </div>
 
