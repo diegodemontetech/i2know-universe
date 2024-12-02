@@ -4,15 +4,18 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { CategoryFilters } from "@/components/common/CategoryFilters";
+import { useState } from "react";
 
 export default function Courses() {
   const session = useSession();
   const navigate = useNavigate();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses", session?.user?.id],
     queryFn: async () => {
-      // Get all courses if user is admin
+      console.log("Fetching courses...");
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
@@ -27,7 +30,6 @@ export default function Courses() {
         return data;
       }
 
-      // Get only permitted courses for regular users
       const { data, error } = await supabase
         .from("courses")
         .select(`
@@ -44,6 +46,10 @@ export default function Courses() {
     enabled: !!session?.user?.id,
   });
 
+  const filteredCourses = selectedCategories.length > 0
+    ? courses.filter(course => selectedCategories.includes(course.category))
+    : courses;
+
   if (isLoading) {
     return <div>Carregando...</div>;
   }
@@ -51,8 +57,13 @@ export default function Courses() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Cursos</h1>
+      
+      <div className="mb-8">
+        <CategoryFilters onCategoriesChange={setSelectedCategories} />
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {courses.map((course) => (
+        {filteredCourses.map((course) => (
           <div
             key={course.id}
             className="group bg-card rounded-lg shadow-sm p-4 hover:shadow-md transition-all relative overflow-hidden"

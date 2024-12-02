@@ -1,87 +1,106 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
+declare global {
+  interface Window {
+    YT: typeof YT;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 interface VideoPlayerProps {
-  youtubeUrl: string | null;
+  youtubeUrl?: string | null;
   onComplete: () => void;
-  isLastLesson?: boolean;
+  isLastLesson: boolean;
 }
 
 export function VideoPlayer({ youtubeUrl, onComplete, isLastLesson }: VideoPlayerProps) {
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [hasWatchedEnough, setHasWatchedEnough] = useState(false);
   const playerRef = useRef<YT.Player | null>(null);
-  
+  const [progress, setProgress] = useState(0);
+  const [canComplete, setCanComplete] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
   useEffect(() => {
-    // Reset progress when video changes
-    setVideoProgress(0);
-    setHasWatchedEnough(false);
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = () => {
+      if (!youtubeUrl) return;
+
+      const videoId = new URL(youtubeUrl).searchParams.get("v");
+      if (!videoId) return;
+
+      playerRef.current = new window.YT.Player("youtube-player", {
+        height: "100%",
+        width: "100%",
+        videoId,
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+        },
+        events: {
+          onStateChange: (event) => {
+            setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
+            
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              startProgressTracking();
+            } else if (event.data === window.YT.PlayerState.PAUSED) {
+              stopProgressTracking();
+            }
+          },
+        },
+      });
+    };
+
+    return () => {
+      playerRef.current?.destroy();
+    };
   }, [youtubeUrl]);
+
+  const startProgressTracking = () => {
+    const interval = setInterval(() => {
+      if (playerRef.current) {
+        const currentTime = playerRef.current.getCurrentTime();
+        const duration = playerRef.current.getDuration();
+        const newProgress = Math.round((currentTime / duration) * 100);
+        setProgress(newProgress);
+
+        if (newProgress >= 90) {
+          setCanComplete(true);
+          clearInterval(interval);
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  };
+
+  const stopProgressTracking = () => {
+    // Progress tracking is handled by the interval in startProgressTracking
+  };
 
   if (!youtubeUrl) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">
-        Selecione uma aula para começar
+      <div className="w-full h-full flex items-center justify-center bg-black text-white">
+        Nenhum vídeo disponível
       </div>
     );
   }
 
-  const videoId = youtubeUrl.split("v=")[1];
-
-  const onPlayerReady = (event: YT.PlayerEvent) => {
-    playerRef.current = event.target;
-    
-    // Set up progress tracking
-    const updateProgress = () => {
-      if (playerRef.current) {
-        const currentTime = playerRef.current.getCurrentTime();
-        const duration = playerRef.current.getDuration();
-        const progress = (currentTime / duration) * 100;
-        setVideoProgress(progress);
-        
-        // Mark as watched when 90% complete
-        if (progress >= 90 && !hasWatchedEnough) {
-          setHasWatchedEnough(true);
-        }
-      }
-    };
-
-    // Update progress every second
-    setInterval(updateProgress, 1000);
-  };
-
   return (
-    <div className="relative h-full bg-black flex flex-col">
-      <div className="flex-1">
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
-          className="w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          onLoad={(e) => {
-            // @ts-ignore - YouTube IFrame API types
-            new YT.Player(e.target, {
-              events: {
-                onReady: onPlayerReady,
-              },
-            });
-          }}
-        />
-      </div>
-      
-      <div className="p-4 space-y-4 bg-black/90">
-        <Progress value={videoProgress} className="h-2 bg-gray-700">
-          <div 
-            className="h-full bg-success transition-all" 
-            style={{ width: `${videoProgress}%` }}
-          />
-        </Progress>
-        
-        {hasWatchedEnough && (
+    <div className="relative w-full h-full">
+      <div id="youtube-player" className="w-full h-full" />
+      <div className="absolute bottom-0 left-0 right-0 bg-black/90 p-4 space-y-2">
+        <Progress value={progress} className="bg-gray-700 [&>[role=progressbar]]:bg-green-500" />
+        {canComplete && (
           <Button
-            className="w-full bg-success hover:bg-success/90"
             onClick={onComplete}
+            className="w-full"
           >
             {isLastLesson ? "Concluir Curso" : "Próxima Aula"}
           </Button>
