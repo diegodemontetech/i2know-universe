@@ -1,120 +1,11 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Pencil, Trash2, Plus, Upload } from "lucide-react";
+import { UserSettings } from "@/components/settings/UserSettings";
+import { CategorySettings } from "@/components/settings/CategorySettings";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("usuarios");
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // Categories Management
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name");
-        
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const addCategoryMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const { error } = await supabase
-        .from("categories")
-        .insert([{ name }]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast({
-        title: "Categoria adicionada",
-        description: "A categoria foi adicionada com sucesso.",
-      });
-    },
-  });
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("categories")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast({
-        title: "Categoria removida",
-        description: "A categoria foi removida com sucesso.",
-      });
-    },
-  });
-
-  // Courses Management
-  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("courses")
-        .select(`
-          *,
-          categories (
-            name
-          )
-        `);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Users Management
-  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-    const name = formData.get("category-name") as string;
-    
-    if (!name) {
-      toast({
-        title: "Erro",
-        description: "O nome da categoria é obrigatório.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    await addCategoryMutation.mutateAsync(name);
-    form.reset();
-  };
 
   return (
     <div className="space-y-6">
@@ -137,7 +28,7 @@ const Settings = () => {
           <TabsTrigger value="ebooks">E-books</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="usuarios" className="space-y-4">
+        <TabsContent value="usuarios">
           <Card>
             <CardHeader>
               <CardTitle>Gerenciar Usuários</CardTitle>
@@ -146,61 +37,12 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Input
-                    placeholder="Buscar usuários..."
-                    className="max-w-sm"
-                  />
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Usuário
-                  </Button>
-                </div>
-                
-                <div className="border rounded-lg">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-4">Nome</th>
-                        <th className="text-left p-4">Email</th>
-                        <th className="text-left p-4">Empresa</th>
-                        <th className="text-left p-4">Função</th>
-                        <th className="text-center p-4">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id} className="border-b">
-                          <td className="p-4">
-                            {user.first_name} {user.last_name}
-                          </td>
-                          <td className="p-4">{user.id}</td>
-                          <td className="p-4">
-                            {user.companies?.name || "N/A"}
-                          </td>
-                          <td className="p-4">{user.role}</td>
-                          <td className="p-4">
-                            <div className="flex justify-center gap-2">
-                              <Button variant="outline" size="sm">
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button variant="destructive" size="sm">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <UserSettings />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="categorias" className="space-y-4">
+        <TabsContent value="categorias">
           <Card>
             <CardHeader>
               <CardTitle>Gerenciar Categorias</CardTitle>
@@ -209,50 +51,12 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <form onSubmit={handleAddCategory} className="flex gap-4">
-                  <div className="flex-1">
-                    <Label htmlFor="category-name">Nome da Categoria</Label>
-                    <Input
-                      id="category-name"
-                      name="category-name"
-                      placeholder="Nova categoria"
-                    />
-                  </div>
-                  <Button type="submit" className="mt-6">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar
-                  </Button>
-                </form>
-                
-                <div className="space-y-2">
-                  {categories.map((category) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center justify-between p-4 bg-card rounded-lg border"
-                    >
-                      <span>{category.name}</span>
-                      <div className="space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CategorySettings />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="cursos" className="space-y-4">
+        <TabsContent value="cursos">
           <Card>
             <CardHeader>
               <CardTitle>Gerenciar Cursos</CardTitle>
