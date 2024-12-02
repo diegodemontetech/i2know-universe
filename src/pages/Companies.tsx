@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Building2, Pencil, Trash } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useSession } from "@supabase/auth-helpers-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 const companyFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -47,7 +48,8 @@ const Companies = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("*");
+        .select("*")
+        .order('name');
       if (error) throw error;
       return data;
     },
@@ -55,7 +57,6 @@ const Companies = () => {
 
   const createCompanyMutation = useMutation({
     mutationFn: async (values: z.infer<typeof companyFormSchema>) => {
-      // Fix: Pass values directly as an object, not as an array
       const { error } = await supabase
         .from("companies")
         .insert({
@@ -96,6 +97,15 @@ const Companies = () => {
         <p className="text-muted-foreground">
           Você não tem permissão para acessar esta página.
         </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+        <div className="h-64 bg-gray-200 rounded animate-pulse" />
       </div>
     );
   }
@@ -158,30 +168,43 @@ const Companies = () => {
         </Dialog>
       </div>
 
-      <div className="border rounded-lg">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="text-left p-4">Nome</th>
-              <th className="text-left p-4">Domínio</th>
-              <th className="text-center p-4">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companies.map((company) => (
-              <tr key={company.id} className="border-b">
-                <td className="p-4">{company.name}</td>
-                <td className="p-4">{company.domain || "N/A"}</td>
-                <td className="p-4">
-                  <div className="flex justify-center gap-2">
-                    {/* Add actions here later if needed */}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {companies.map((company) => (
+          <Card key={company.id} className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Building2 className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold">{company.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {company.domain || "Sem domínio"}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="icon">
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-destructive">
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {companies.length === 0 && (
+        <div className="text-center py-12">
+          <Building2 className="w-12 h-12 mx-auto text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-semibold">Nenhuma empresa cadastrada</h3>
+          <p className="text-muted-foreground">
+            Clique no botão "Nova Empresa" para começar.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
