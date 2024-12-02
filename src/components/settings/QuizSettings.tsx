@@ -78,10 +78,12 @@ export function QuizSettings() {
         .eq("quiz_id", selectedCourseId);
       if (error) throw error;
       
-      // Ensure options is always an array
+      // Ensure options is always an array of strings
       return data.map((question): QuizQuestion => ({
         ...question,
-        options: Array.isArray(question.options) ? question.options : [],
+        options: Array.isArray(question.options) 
+          ? (question.options as string[]) 
+          : [],
       }));
     },
     enabled: !!selectedCourseId,
