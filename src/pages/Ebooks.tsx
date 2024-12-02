@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CategoryFilters } from "@/components/common/CategoryFilters";
-import { useState } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@supabase/auth-helpers-react";
+import { CategoryFilters } from "@/components/common/CategoryFilters";
+import { useState } from "react";
 import { BookReader } from "@/components/ebooks/BookReader";
 import { ReadingProgress } from "@/components/ebooks/ReadingProgress";
 import { useToast } from "@/hooks/use-toast";
