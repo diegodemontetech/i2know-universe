@@ -23,6 +23,8 @@ import { Button } from "./ui/button";
 const useProfile = () => {
   const session = useSession();
   
+  console.log("Current session:", session); // Debug log
+  
   return useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -32,6 +34,9 @@ const useProfile = () => {
         .eq("id", session?.user?.id)
         .single();
         
+      console.log("Profile data:", data); // Debug log
+      console.log("Profile error:", error); // Debug log
+      
       if (error) throw error;
       return data;
     },
@@ -56,9 +61,14 @@ const adminNavigation = [
 
 export const Sidebar = () => {
   const location = useLocation();
-  const { data: profile } = useProfile();
+  const { data: profile, isLoading, error } = useProfile();
   const isAdminMaster = profile?.role === "admin_master";
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  console.log("Is admin master:", isAdminMaster); // Debug log
+  console.log("Current profile:", profile); // Debug log
+  console.log("Profile loading:", isLoading); // Debug log
+  console.log("Profile error:", error); // Debug log
 
   return (
     <aside 
