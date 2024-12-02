@@ -5,8 +5,13 @@ import { CategorySection } from "@/components/courses/CategorySection";
 import { NewsCard } from "@/components/news/NewsCard";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function Index() {
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -49,6 +54,18 @@ export default function Index() {
     },
   });
 
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryName)
+        ? prev.filter(cat => cat !== categoryName)
+        : [...prev, categoryName]
+    );
+  };
+
+  const filteredCategories = selectedCategories.length > 0
+    ? categories.filter(cat => selectedCategories.includes(cat.name))
+    : categories;
+
   return (
     <div className="space-y-12 animate-fade-in">
       {featuredCourse && (
@@ -80,8 +97,40 @@ export default function Index() {
         </div>
       )}
 
+      {/* Category Filters */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold">Categorias</h2>
+          {selectedCategories.length > 0 && (
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedCategories([])}
+              className="text-sm text-gray-400 hover:text-white"
+            >
+              Limpar filtros
+            </Button>
+          )}
+        </div>
+        
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex space-x-2 pb-4">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                onClick={() => toggleCategory(category.name)}
+                variant={selectedCategories.includes(category.name) ? "default" : "outline"}
+                className="rounded-full px-4 py-1 transition-all"
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
+
       <div className="space-y-12">
-        {categories.map((category) => (
+        {filteredCategories.map((category) => (
           <CategorySection
             key={category.id}
             category={category.name}
