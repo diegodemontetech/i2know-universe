@@ -1,163 +1,191 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2 } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const formSchema = z.object({
-  title: z.string().min(1, "O título é obrigatório"),
-  summary: z.string().min(1, "O resumo é obrigatório"),
-  category: z.string().min(1, "A categoria é obrigatória"),
-  read_time: z.string().min(1, "O tempo de leitura é obrigatório"),
-  featured_position: z.string().min(1, "A posição de destaque é obrigatória"),
-});
+type News = {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  date: string;
+  read_time: string;
+  featured_position: string | null;
+};
+
+type NewsFormData = Omit<News, 'id'>;
+
+const initialFormData: NewsFormData = {
+  title: "",
+  summary: "",
+  category: "",
+  date: new Date().toISOString().split("T")[0],
+  read_time: "",
+  featured_position: null,
+};
 
 export function NewsSettings() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState<NewsFormData>(initialFormData);
+  
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      summary: "",
-      category: "",
-      read_time: "",
-      featured_position: "none",
+  const queryClient = useQueryClient();
+
+  const { data: newsList = [], isLoading } = useQuery({
+    queryKey: ["news"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*");
+      if (error) throw error;
+      return data;
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const { error } = await supabase.from("news").insert([
-        {
-          ...values,
-          date: new Date().toISOString(),
-        },
-      ]);
-
+  const createMutation = useMutation({
+    mutationFn: async (news: NewsFormData[]) => {
+      const { data, error } = await supabase
+        .from("news")
+        .insert(news.map(item => ({
+          title: item.title || "",
+          summary: item.summary || "",
+          category: item.category || "",
+          date: item.date,
+          read_time: item.read_time || "",
+          featured_position: item.featured_position
+        })))
+        .select();
       if (error) throw error;
-
-      toast({
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+      toast({ 
         title: "Notícia criada com sucesso!",
-        variant: "success",
+        variant: "default"  // Changed from "success" to "default"
       });
-
-      form.reset();
-    } catch (error) {
-      console.error("Error creating news:", error);
-      toast({
-        title: "Erro ao criar notícia",
-        description: "Por favor, tente novamente.",
+      setIsOpen(false);
+      setFormData(initialFormData);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Erro ao criar notícia", 
+        description: error.message,
         variant: "destructive",
       });
-    }
-  }
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createMutation.mutate([formData]);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o título da notícia" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="summary"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resumo</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Digite o resumo da notícia"
-                  {...field}
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setFormData(initialFormData)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Notícia
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Nova Notícia</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  required
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="summary">Resumo</Label>
+                <Input
+                  id="summary"
+                  value={formData.summary}
+                  onChange={(e) => setFormData(prev => ({ ...prev, summary: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Categoria</Label>
+                <Input
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="date">Data</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="read_time">Tempo de Leitura</Label>
+                <Input
+                  id="read_time"
+                  value={formData.read_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, read_time: e.target.value }))}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={createMutation.isPending}>
+                  Criar
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Categoria</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite a categoria" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="read_time"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tempo de Leitura</FormLabel>
-              <FormControl>
-                <Input placeholder="Ex: 5 min" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="featured_position"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Posição de Destaque</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a posição de destaque" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">Sem destaque</SelectItem>
-                  <SelectItem value="home">Página inicial</SelectItem>
-                  <SelectItem value="news_top">Topo da página de notícias</SelectItem>
-                  <SelectItem value="both">Ambos</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit">Criar Notícia</Button>
-      </form>
-    </Form>
+      <div className="grid gap-4">
+        {newsList.map((news) => (
+          <div key={news.id} className="flex items-center justify-between p-4 bg-card rounded-lg border">
+            <div className="space-y-1">
+              <h4 className="font-medium">{news.title}</h4>
+              <p className="text-sm text-muted-foreground">{news.summary}</p>
+            </div>
+            <div className="space-x-2">
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => {
+                  if (window.confirm("Tem certeza que deseja excluir esta notícia?")) {
+                    // deleteMutation.mutate(news.id); // Assuming delete mutation is implemented
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

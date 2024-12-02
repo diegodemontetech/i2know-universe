@@ -244,6 +244,7 @@ export type Database = {
           created_at: string
           id: string
           pages: number
+          pdf_url: string | null
           published_at: string
           reading_time: string
           summary: string
@@ -257,6 +258,7 @@ export type Database = {
           created_at?: string
           id?: string
           pages: number
+          pdf_url?: string | null
           published_at: string
           reading_time: string
           summary: string
@@ -270,6 +272,7 @@ export type Database = {
           created_at?: string
           id?: string
           pages?: number
+          pdf_url?: string | null
           published_at?: string
           reading_time?: string
           summary?: string

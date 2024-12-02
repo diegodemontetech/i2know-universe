@@ -1,144 +1,239 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Pencil, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+
+type Profile = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+};
+
+type ProfileFormData = Omit<Profile, 'id'>;
+
+const initialFormData: ProfileFormData = {
+  first_name: "",
+  last_name: "",
+  role: "",
+};
 
 export function UserSettings() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  const [formData, setFormData] = useState<ProfileFormData>(initialFormData);
+  
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ["courses"],
+  const { data: profiles = [], isLoading } = useQuery({
+    queryKey: ["profiles"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("courses").select("*");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*");
       if (error) throw error;
       return data;
     },
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*");
+  const createMutation = useMutation({
+    mutationFn: async (newProfile: ProfileFormData) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .insert([newProfile])
+        .select()
+        .single();
       if (error) throw error;
       return data;
-    },
-  });
-
-  const createUserMutation = useMutation({
-    mutationFn: async ({ email, password, selectedCourses }: { 
-      email: string; 
-      password: string; 
-      selectedCourses: string[];
-    }) => {
-      // Create user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      });
-      
-      if (authError) throw authError;
-
-      // Create course permissions
-      const coursePermissionsPromises = selectedCourses.map(courseId => 
-        supabase
-          .from("course_permissions")
-          .insert({ user_id: authData.user.id, course_id: courseId })
-      );
-
-      await Promise.all(coursePermissionsPromises);
     },
     onSuccess: () => {
-      toast({
-        title: "Usuário criado",
-        description: "O usuário foi criado com sucesso.",
-      });
-      setEmail("");
-      setPassword("");
-      setSelectedCourses([]);
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast({ title: "Usuário criado com sucesso!" });
+      setIsOpen(false);
+      setFormData(initialFormData);
     },
     onError: (error) => {
-      console.error("Create user error:", error);
-      toast({
-        title: "Erro ao criar usuário",
-        description: "Ocorreu um erro ao criar o usuário.",
+      toast({ 
+        title: "Erro ao criar usuário", 
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleCreateUser = () => {
-    createUserMutation.mutate({ email, password, selectedCourses });
+  const updateMutation = useMutation({
+    mutationFn: async (profile: Profile) => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          role: profile.role,
+        })
+        .eq("id", profile.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast({ title: "Usuário atualizado com sucesso!" });
+      setIsOpen(false);
+      setEditingProfile(null);
+      setFormData(initialFormData);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Erro ao atualizar usuário", 
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast({ title: "Usuário excluído com sucesso!" });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Erro ao excluir usuário", 
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingProfile) {
+      updateMutation.mutate({ ...formData, id: editingProfile.id });
+    } else {
+      createMutation.mutate(formData);
+    }
   };
 
-  const handleCourseToggle = (courseId: string) => {
-    setSelectedCourses(current =>
-      current.includes(courseId)
-        ? current.filter(id => id !== courseId)
-        : [...current, courseId]
-    );
+  const handleEdit = (profile: Profile) => {
+    setEditingProfile(profile);
+    setFormData(profile);
+    setIsOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este usuário?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Criar Novo Usuário</h2>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Permissões de Cursos</Label>
-            <div className="grid gap-2">
-              {courses.map((course) => (
-                <div key={course.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`course-${course.id}`}
-                    checked={selectedCourses.includes(course.id)}
-                    onCheckedChange={() => handleCourseToggle(course.id)}
-                  />
-                  <Label htmlFor={`course-${course.id}`}>{course.title}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Button onClick={handleCreateUser}>Criar Usuário</Button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => {
+              setEditingProfile(null);
+              setFormData(initialFormData);
+            }}>
+              <Pencil className="w-4 h-4 mr-2" />
+              Novo Usuário
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editingProfile ? "Editar Usuário" : "Novo Usuário"}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">Nome</Label>
+                <Input
+                  id="first_name"
+                  value={formData.first_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Sobrenome</Label>
+                <Input
+                  id="last_name"
+                  value={formData.last_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Função</Label>
+                <Input
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                  {editingProfile ? "Atualizar" : "Criar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold">Usuários Existentes</h2>
-        <ul className="space-y-2">
-          {users.map((user) => (
-            <li key={user.id} className="py-2 px-4 bg-card rounded-lg">
-              {user.email}
-            </li>
-          ))}
-        </ul>
+      <div className="grid gap-4">
+        {profiles.map((profile) => (
+          <div
+            key={profile.id}
+            className="flex items-center justify-between p-4 bg-card rounded-lg border"
+          >
+            <div className="space-y-1">
+              <h4 className="font-medium">{profile.first_name} {profile.last_name}</h4>
+              <p className="text-sm text-muted-foreground">
+                Função: {profile.role}
+              </p>
+            </div>
+            <div className="space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleEdit(profile)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={() => handleDelete(profile.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
