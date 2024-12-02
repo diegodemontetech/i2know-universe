@@ -30,6 +30,59 @@ export type Database = {
         }
         Relationships: []
       }
+      certificates: {
+        Row: {
+          category_position: Json | null
+          certificate_number_position: Json | null
+          company_id: string | null
+          course_name_position: Json | null
+          created_at: string
+          date_position: Json | null
+          duration_position: Json | null
+          id: string
+          logo_position: Json | null
+          signature_position: Json | null
+          template_image_url: string
+          updated_at: string
+        }
+        Insert: {
+          category_position?: Json | null
+          certificate_number_position?: Json | null
+          company_id?: string | null
+          course_name_position?: Json | null
+          created_at?: string
+          date_position?: Json | null
+          duration_position?: Json | null
+          id?: string
+          logo_position?: Json | null
+          signature_position?: Json | null
+          template_image_url: string
+          updated_at?: string
+        }
+        Update: {
+          category_position?: Json | null
+          certificate_number_position?: Json | null
+          company_id?: string | null
+          course_name_position?: Json | null
+          created_at?: string
+          date_position?: Json | null
+          duration_position?: Json | null
+          id?: string
+          logo_position?: Json | null
+          signature_position?: Json | null
+          template_image_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           background_color: string | null
