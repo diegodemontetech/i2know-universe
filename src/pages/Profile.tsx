@@ -1,25 +1,18 @@
+import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "@supabase/auth-helpers-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Profile = () => {
   const session = useSession();
-  
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `)
+        .select("*, companies(*)")
         .eq("id", session?.user?.id)
         .single();
         
@@ -30,60 +23,52 @@ const Profile = () => {
   });
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Card>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Meu Perfil</h1>
-
+      <h1 className="text-2xl font-bold">Perfil</h1>
+      
       <Card>
         <CardHeader>
           <CardTitle>Informações Pessoais</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="avatar">Foto de Perfil</Label>
-            <Input id="avatar" type="file" accept="image/*" />
+          <div>
+            <label className="text-sm font-medium text-gray-400">Nome</label>
+            <p className="text-lg">{profile?.first_name} {profile?.last_name}</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">Nome</Label>
-              <Input id="first_name" defaultValue={profile?.first_name} />
+          
+          <div>
+            <label className="text-sm font-medium text-gray-400">Email</label>
+            <p className="text-lg">{session?.user?.email}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-400">Função</label>
+            <p className="text-lg capitalize">{profile?.role}</p>
+          </div>
+
+          {profile?.company_id && (
+            <div>
+              <label className="text-sm font-medium text-gray-400">Empresa</label>
+              <p className="text-lg">{profile?.companies?.name}</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Sobrenome</Label>
-              <Input id="last_name" defaultValue={profile?.last_name} />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" defaultValue={session?.user?.email} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company">Empresa</Label>
-            <Input id="company" defaultValue={profile?.companies?.name} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Função</Label>
-            <Input
-              id="role"
-              defaultValue={
-                profile?.role === "admin_master"
-                  ? "Admin Master"
-                  : profile?.role === "admin"
-                  ? "Admin"
-                  : "Usuário"
-              }
-              disabled
-            />
-          </div>
+          )}
         </CardContent>
       </Card>
-
-      <div className="flex justify-end">
-        <Button>Salvar Alterações</Button>
-      </div>
     </div>
   );
 };

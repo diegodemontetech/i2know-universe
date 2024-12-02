@@ -1,8 +1,11 @@
-import { Home, Building2, Users, User, Settings } from "lucide-react";
+import { useState } from "react";
+import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 const useProfile = () => {
   const session = useSession();
@@ -35,14 +38,34 @@ export const Sidebar = () => {
   const location = useLocation();
   const { data: profile } = useProfile();
   const isAdminMaster = profile?.role === "admin_master";
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <aside className="w-64 bg-sidebar min-h-screen p-4 flex flex-col">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">i2Know</h1>
+    <aside 
+      className={cn(
+        "bg-sidebar min-h-screen flex flex-col transition-all duration-300",
+        isCollapsed ? "w-20" : "w-64"
+      )}
+    >
+      <div className="p-4 flex justify-between items-center">
+        <div className={cn("transition-all duration-300", isCollapsed ? "w-full" : "w-32")}>
+          <img
+            src="https://i.ibb.co/yRKDrV7/i2know.png"
+            alt="i2Know"
+            className="w-full h-auto object-contain"
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-400 hover:text-white"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
       
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-2 p-4">
         {navigation.map((item) => {
           if (item.adminOnly && !isAdminMaster) return null;
           
@@ -51,12 +74,22 @@ export const Sidebar = () => {
             <Link
               key={item.name}
               to={item.path}
-              className={`nav-link ${isActive ? "active" : ""}`}
+              className={cn(
+                "nav-link group",
+                isActive ? "active" : "",
+                isCollapsed && "justify-center"
+              )}
+              title={isCollapsed ? item.name : undefined}
             >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-400"}`} />
-              <span className={isActive ? "text-white" : "text-gray-400"}>
-                {item.name}
-              </span>
+              <item.icon className={cn(
+                "w-5 h-5",
+                isActive ? "text-white" : "text-gray-400"
+              )} />
+              {!isCollapsed && (
+                <span className={isActive ? "text-white" : "text-gray-400"}>
+                  {item.name}
+                </span>
+              )}
             </Link>
           );
         })}

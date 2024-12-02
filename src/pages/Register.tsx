@@ -1,15 +1,19 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const Register = () => {
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">
-          Criar Conta
-        </CardTitle>
+      <CardHeader className="space-y-4">
+        <div className="flex justify-center">
+          <img 
+            src="https://i.ibb.co/yRKDrV7/i2know.png" 
+            alt="i2Know" 
+            className="h-16 object-contain"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Auth
