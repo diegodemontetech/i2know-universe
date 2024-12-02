@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@supabase/auth-helpers-react";
+import { ProgressFooter } from "@/components/ui/progress-footer";
 
 interface BookReaderProps {
   open: boolean;
@@ -18,13 +17,18 @@ interface BookReaderProps {
   onPageChange: (page: number) => void;
 }
 
-export function BookReader({ open, onOpenChange, ebook, currentPage, onPageChange }: BookReaderProps) {
+export function BookReader({ 
+  open, 
+  onOpenChange, 
+  ebook, 
+  currentPage, 
+  onPageChange 
+}: BookReaderProps) {
   const [page, setPage] = useState(currentPage);
-  const session = useSession();
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (!open) {
-      // Save progress when closing the reader
       onPageChange(page);
     }
   }, [open, page, onPageChange]);
@@ -47,13 +51,10 @@ export function BookReader({ open, onOpenChange, ebook, currentPage, onPageChang
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">{ebook.title}</h2>
-            <span className="text-sm text-muted-foreground">
-              Página {page} de {ebook.pages}
-            </span>
           </div>
 
           <div className="flex-1 relative">
-            {ebook.pdf_url && (
+            {ebook.pdf_url && isVisible && (
               <iframe
                 src={`${ebook.pdf_url}#page=${page}`}
                 className="w-full h-full"
@@ -61,6 +62,16 @@ export function BookReader({ open, onOpenChange, ebook, currentPage, onPageChang
               />
             )}
           </div>
+
+          <ProgressFooter
+            metrics={{
+              totalPages: ebook.pages,
+              currentPage: page,
+              progressPercentage: (page / ebook.pages) * 100,
+            }}
+            isVisible={isVisible}
+            onToggleVisibility={() => setIsVisible(!isVisible)}
+          />
 
           <div className="flex justify-between items-center mt-4">
             <Button
