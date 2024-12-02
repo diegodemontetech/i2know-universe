@@ -14,6 +14,7 @@ const Login = () => {
       <CardContent>
         <Auth
           supabaseClient={supabase}
+          providers={[]}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -32,16 +33,14 @@ const Login = () => {
                 password_label: "Senha",
                 button_label: "Entrar",
                 loading_button_label: "Entrando...",
-                social_provider_text: "Entrar com {{provider}}",
-                link_text: "Já tem uma conta? Entre",
+                link_text: "Não tem uma conta? Cadastre-se",
               },
               sign_up: {
                 email_label: "Email",
                 password_label: "Senha",
                 button_label: "Cadastrar",
                 loading_button_label: "Cadastrando...",
-                social_provider_text: "Cadastrar com {{provider}}",
-                link_text: "Não tem uma conta? Cadastre-se",
+                link_text: "Já tem uma conta? Entre",
               },
             },
           }}

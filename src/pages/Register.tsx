@@ -14,6 +14,7 @@ const Register = () => {
       <CardContent>
         <Auth
           supabaseClient={supabase}
+          providers={[]}
           view="sign_up"
           appearance={{
             theme: ThemeSupa,
@@ -33,7 +34,6 @@ const Register = () => {
                 password_label: "Senha",
                 button_label: "Cadastrar",
                 loading_button_label: "Cadastrando...",
-                social_provider_text: "Cadastrar com {{provider}}",
                 link_text: "Já tem uma conta? Entre",
               },
             },
