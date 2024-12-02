@@ -23,6 +23,27 @@ export function LessonSettings() {
     },
   });
 
+  const { data: lessons = [], isLoading: isLoadingLessons } = useQuery({
+    queryKey: ["lessons", selectedCourseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lessons")
+        .select(`
+          *,
+          support_materials(*),
+          quizzes(
+            *,
+            quiz_questions(*)
+          )
+        `)
+        .eq("course_id", selectedCourseId)
+        .order("order_index");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedCourseId,
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
@@ -61,7 +82,27 @@ export function LessonSettings() {
         </Dialog>
       </div>
 
-      <LessonList selectedCourseId={selectedCourseId} />
+      {!selectedCourseId ? (
+        <div className="border rounded-lg p-4">
+          <p className="text-muted-foreground text-center">
+            Selecione um curso para gerenciar suas aulas
+          </p>
+        </div>
+      ) : isLoadingLessons ? (
+        <div className="border rounded-lg p-4">
+          <p className="text-muted-foreground text-center">
+            Carregando aulas...
+          </p>
+        </div>
+      ) : (
+        <LessonList 
+          lessons={lessons} 
+          onUpdate={() => {
+            // Invalidate the lessons query to refresh the data
+            queryClient.invalidateQueries({ queryKey: ["lessons"] });
+          }} 
+        />
+      )}
     </div>
   );
 }
