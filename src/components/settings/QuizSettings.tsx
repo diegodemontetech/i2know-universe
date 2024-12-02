@@ -71,7 +71,7 @@ export function QuizSettings() {
               <DialogTitle>Nova Questão</DialogTitle>
             </DialogHeader>
             <QuestionForm
-              courseId={selectedCourseId}
+              quizId={selectedCourseId}
               onSuccess={() => setIsDialogOpen(false)}
             />
           </DialogContent>
@@ -87,7 +87,6 @@ export function QuizSettings() {
       ) : (
         <QuestionList 
           selectedCourseId={selectedCourseId}
-          selectedCategoryId={selectedCategoryId}
         />
       )}
     </div>
