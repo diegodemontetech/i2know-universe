@@ -4,12 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQuery } from "@tanstack/react-query";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Pencil, Trash2, Plus, Upload } from "lucide-react";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("usuarios");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
+  // Categories Management
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -23,6 +30,92 @@ const Settings = () => {
     },
   });
 
+  const addCategoryMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase
+        .from("categories")
+        .insert([{ name }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Categoria adicionada",
+        description: "A categoria foi adicionada com sucesso.",
+      });
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("categories")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast({
+        title: "Categoria removida",
+        description: "A categoria foi removida com sucesso.",
+      });
+    },
+  });
+
+  // Courses Management
+  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
+    queryKey: ["courses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select(`
+          *,
+          categories (
+            name
+          )
+        `);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Users Management
+  const { data: users = [], isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          *,
+          companies (
+            name
+          )
+        `);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const name = formData.get("category-name") as string;
+    
+    if (!name) {
+      toast({
+        title: "Erro",
+        description: "O nome da categoria é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await addCategoryMutation.mutateAsync(name);
+    form.reset();
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,7 +126,7 @@ const Settings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="w-full justify-start">
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
           <TabsTrigger value="cursos">Cursos</TabsTrigger>
@@ -52,8 +145,57 @@ const Settings = () => {
                 Adicione, edite ou remova usuários do sistema.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* User management content will go here */}
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Input
+                    placeholder="Buscar usuários..."
+                    className="max-w-sm"
+                  />
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Usuário
+                  </Button>
+                </div>
+                
+                <div className="border rounded-lg">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-4">Nome</th>
+                        <th className="text-left p-4">Email</th>
+                        <th className="text-left p-4">Empresa</th>
+                        <th className="text-left p-4">Função</th>
+                        <th className="text-center p-4">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b">
+                          <td className="p-4">
+                            {user.first_name} {user.last_name}
+                          </td>
+                          <td className="p-4">{user.id}</td>
+                          <td className="p-4">
+                            {user.companies?.name || "N/A"}
+                          </td>
+                          <td className="p-4">{user.role}</td>
+                          <td className="p-4">
+                            <div className="flex justify-center gap-2">
+                              <Button variant="outline" size="sm">
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -68,21 +210,39 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex gap-4">
+                <form onSubmit={handleAddCategory} className="flex gap-4">
                   <div className="flex-1">
                     <Label htmlFor="category-name">Nome da Categoria</Label>
-                    <Input id="category-name" placeholder="Nova categoria" />
+                    <Input
+                      id="category-name"
+                      name="category-name"
+                      placeholder="Nova categoria"
+                    />
                   </div>
-                  <Button className="mt-6">Adicionar</Button>
-                </div>
+                  <Button type="submit" className="mt-6">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar
+                  </Button>
+                </form>
                 
                 <div className="space-y-2">
                   {categories.map((category) => (
-                    <div key={category.id} className="flex items-center justify-between p-2 bg-card rounded-lg">
+                    <div
+                      key={category.id}
+                      className="flex items-center justify-between p-4 bg-card rounded-lg border"
+                    >
                       <span>{category.name}</span>
                       <div className="space-x-2">
-                        <Button variant="outline" size="sm">Editar</Button>
-                        <Button variant="destructive" size="sm">Excluir</Button>
+                        <Button variant="outline" size="sm">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -92,8 +252,7 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
-        {/* Similar structure for other tabs */}
-        <TabsContent value="cursos">
+        <TabsContent value="cursos" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Gerenciar Cursos</CardTitle>
@@ -102,7 +261,50 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Course management content */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Input
+                    placeholder="Buscar cursos..."
+                    className="max-w-sm"
+                  />
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Curso
+                  </Button>
+                </div>
+
+                <div className="grid gap-4">
+                  {courses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="flex items-center justify-between p-4 bg-card rounded-lg border"
+                    >
+                      <div className="space-y-1">
+                        <h4 className="font-medium">{course.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {course.description}
+                        </p>
+                        <div className="flex gap-2">
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            {course.categories?.name}
+                          </span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            {course.difficulty}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -116,7 +318,32 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Lesson management content */}
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Select>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Selecione o curso" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Aula
+                  </Button>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <p className="text-muted-foreground text-center">
+                    Selecione um curso para gerenciar suas aulas
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -130,7 +357,32 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Quiz management content */}
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Select>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Selecione o curso" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courses.map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Questão
+                  </Button>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <p className="text-muted-foreground text-center">
+                    Selecione um curso para gerenciar seu quiz
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -144,7 +396,51 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* News management content */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Input
+                    placeholder="Buscar notícias..."
+                    className="max-w-sm"
+                  />
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Notícia
+                  </Button>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <form className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Título</Label>
+                      <Input id="title" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="summary">Resumo</Label>
+                      <Textarea id="summary" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Categoria</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="read_time">Tempo de Leitura</Label>
+                      <Input id="read_time" placeholder="Ex: 5 min" />
+                    </div>
+                    <Button type="submit">Publicar Notícia</Button>
+                  </form>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -158,7 +454,24 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Featured content management */}
+              <div className="space-y-4">
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-medium mb-4">Cursos em Destaque</h3>
+                  <div className="space-y-2">
+                    {courses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="flex items-center justify-between p-2 bg-card rounded border"
+                      >
+                        <span>{course.title}</span>
+                        <Button variant="outline" size="sm">
+                          Destacar
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -172,7 +485,56 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Ebook management content */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Input
+                    placeholder="Buscar e-books..."
+                    className="max-w-sm"
+                  />
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo E-book
+                  </Button>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <form className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ebook-title">Título</Label>
+                      <Input id="ebook-title" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="author">Autor</Label>
+                      <Input id="author" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="summary">Resumo</Label>
+                      <Textarea id="summary" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="pages">Número de Páginas</Label>
+                        <Input id="pages" type="number" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="reading_time">Tempo de Leitura</Label>
+                        <Input id="reading_time" placeholder="Ex: 2 horas" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cover">Capa</Label>
+                      <div className="flex items-center gap-4">
+                        <Input id="cover" type="file" accept="image/*" />
+                        <Button type="button" variant="outline">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload
+                        </Button>
+                      </div>
+                    </div>
+                    <Button type="submit">Publicar E-book</Button>
+                  </form>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
