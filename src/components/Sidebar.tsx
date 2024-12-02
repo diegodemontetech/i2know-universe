@@ -13,7 +13,7 @@ import {
   UserPlus,
   Building
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Navigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,19 +23,18 @@ import { Button } from "./ui/button";
 const useProfile = () => {
   const session = useSession();
   
-  console.log("Current session:", session); // Debug log
-  
   return useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
+      console.log("Fetching profile for user:", session?.user?.id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session?.user?.id)
         .single();
         
-      console.log("Profile data:", data); // Debug log
-      console.log("Profile error:", error); // Debug log
+      console.log("Profile data:", data);
+      console.log("Profile error:", error);
       
       if (error) throw error;
       return data;
@@ -44,31 +43,43 @@ const useProfile = () => {
   });
 };
 
-const navigation = [
+// Base navigation items for all users
+const baseNavigation = [
   { name: "Início", icon: Home, path: "/" },
-  { name: "Usuários", icon: Users, path: "/usuarios" },
   { name: "Cursos", icon: GraduationCap, path: "/cursos" },
   { name: "E-books", icon: Book, path: "/ebooks" },
   { name: "Notícias", icon: Newspaper, path: "/noticias" },
   { name: "Perfil", icon: User, path: "/perfil" },
+];
+
+// Admin-only navigation items
+const adminNavigation = [
+  { name: "Usuários", icon: Users, path: "/usuarios" },
   { name: "Configurações", icon: Settings, path: "/configuracoes" },
 ];
 
-const adminNavigation = [
+// Admin master only navigation items
+const adminMasterNavigation = [
   { name: "Gerenciar Empresas", icon: Building, path: "/empresas" },
   { name: "Gerenciar Admins", icon: UserPlus, path: "/usuarios/admins" },
 ];
 
 export const Sidebar = () => {
   const location = useLocation();
-  const { data: profile, isLoading, error } = useProfile();
-  const isAdminMaster = profile?.role === "admin_master";
+  const { data: profile, isLoading } = useProfile();
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  console.log("Is admin master:", isAdminMaster); // Debug log
-  console.log("Current profile:", profile); // Debug log
-  console.log("Profile loading:", isLoading); // Debug log
-  console.log("Profile error:", error); // Debug log
+  console.log("Current user role:", profile?.role);
+
+  const isAdmin = profile?.role === "admin" || profile?.role === "admin_master";
+  const isAdminMaster = profile?.role === "admin_master";
+
+  // Combine navigation items based on user role
+  const navigation = [
+    ...baseNavigation,
+    ...(isAdmin ? adminNavigation : []),
+    ...(isAdminMaster ? adminMasterNavigation : []),
+  ];
 
   return (
     <aside 
@@ -125,43 +136,6 @@ export const Sidebar = () => {
             )}
           </Link>
         ))}
-
-        {isAdminMaster && (
-          <>
-            <div className={cn(
-              "border-t border-white/10 pt-2 mt-4",
-              !isCollapsed && "px-2"
-            )}>
-              {!isCollapsed && (
-                <span className="text-xs font-semibold text-gray-400 uppercase">
-                  Administração
-                </span>
-              )}
-            </div>
-            {adminNavigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={cn(
-                  "nav-link group",
-                  location.pathname === item.path ? "active" : "",
-                  isCollapsed && "justify-center"
-                )}
-                title={isCollapsed ? item.name : undefined}
-              >
-                <item.icon className={cn(
-                  "w-5 h-5",
-                  location.pathname === item.path ? "text-white" : "text-gray-400"
-                )} />
-                {!isCollapsed && (
-                  <span className={location.pathname === item.path ? "text-white" : "text-gray-400"}>
-                    {item.name}
-                  </span>
-                )}
-              </Link>
-            ))}
-          </>
-        )}
       </nav>
     </aside>
   );
