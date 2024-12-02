@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NewsCard } from "@/components/news/NewsCard";
 
 export default function News() {
   const { data: news = [], isLoading, error } = useQuery({
@@ -8,7 +9,8 @@ export default function News() {
       console.log("Fetching news...");
       const { data, error } = await supabase
         .from("news")
-        .select("*");
+        .select("*")
+        .order("date", { ascending: false });
       
       console.log("News data:", data);
       console.log("News error:", error);
@@ -19,26 +21,64 @@ export default function News() {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
   }
 
   if (error) {
     console.error("Error loading news:", error);
-    return <div>Error loading news</div>;
+    return (
+      <div className="text-center text-red-500">
+        Erro ao carregar as notícias
+      </div>
+    );
   }
 
+  // Agrupar notícias em destaque (3 primeiras) e o resto
+  const featuredNews = news.slice(0, 3);
+  const regularNews = news.slice(3);
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">Notícias</h1>
-      {news.length === 0 ? (
-        <p>Nenhuma notícia disponível no momento.</p>
-      ) : (
-        <div className="space-y-6">
-          {news.map((item) => (
-            <div key={item.id} className="bg-card rounded-lg shadow-md p-4">
-              <h2 className="text-xl font-semibold">{item.title}</h2>
-              <p className="text-muted-foreground mt-2">{item.summary}</p>
-            </div>
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      <h1 className="text-3xl font-bold mb-8">Últimas Notícias</h1>
+      
+      {/* Featured News Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {featuredNews.map((item) => (
+          <NewsCard
+            key={item.id}
+            title={item.title}
+            summary={item.summary}
+            category={item.category}
+            date={item.date}
+            image="https://source.unsplash.com/random/?news"
+            author={{
+              name: "Autor",
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.id}`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Regular News Grid */}
+      {regularNews.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+          {regularNews.map((item) => (
+            <NewsCard
+              key={item.id}
+              title={item.title}
+              summary={item.summary}
+              category={item.category}
+              date={item.date}
+              image="https://source.unsplash.com/random/?news"
+              author={{
+                name: "Autor",
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.id}`,
+              }}
+            />
           ))}
         </div>
       )}
