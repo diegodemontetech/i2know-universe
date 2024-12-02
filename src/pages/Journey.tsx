@@ -93,8 +93,8 @@ export default function Journey() {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold">Sua Jornada de Aprendizado</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-4xl font-bold text-white">Sua Jornada de Aprendizado</h1>
+        <p className="text-white/80">
           Continue aprendendo para alcançar novos níveis
         </p>
       </div>
@@ -105,32 +105,53 @@ export default function Journey() {
           <div className="mx-auto p-3 rounded-full bg-card inline-block mb-2">
             <Trophy className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Nível {currentLevel?.name}</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl text-white">Nível {currentLevel?.name}</CardTitle>
+          <CardDescription className="text-white/80">
             {currentPoints.toLocaleString()} pontos conquistados
           </CardDescription>
         </CardHeader>
       </Card>
 
       {/* Level Progress Path */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {levels.map((level) => (
-          <LevelCard
-            key={level.id}
-            name={level.name}
-            icon={level.icon}
-            minPoints={level.min_points}
-            maxPoints={level.max_points}
-            currentPoints={currentPoints}
-            isCurrentLevel={currentLevel?.id === level.id}
-            isUnlocked={currentPoints >= level.min_points}
+      <div className="relative py-12">
+        <div className="absolute top-1/2 left-0 right-0 h-2 bg-secondary/20 -translate-y-1/2">
+          <div 
+            className="h-full bg-primary rounded-full transition-all duration-1000"
+            style={{ 
+              width: `${Math.min((currentPoints / (levels[levels.length - 1]?.max_points || 10000)) * 100, 100)}%`,
+              boxShadow: '0 0 20px rgba(229, 9, 20, 0.5)'
+            }}
           />
-        ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
+          {levels.map((level, index) => (
+            <div key={level.id} className="relative">
+              {index > 0 && (
+                <div 
+                  className="absolute top-1/2 -left-8 w-16 h-16 border-t-2 border-primary/30"
+                  style={{
+                    transform: `rotate(${index % 2 ? 15 : -15}deg)`,
+                    transformOrigin: index % 2 ? 'bottom left' : 'top left'
+                  }}
+                />
+              )}
+              <LevelCard
+                name={level.name}
+                icon={level.icon}
+                minPoints={level.min_points}
+                maxPoints={level.max_points}
+                currentPoints={currentPoints}
+                isCurrentLevel={currentLevel?.id === level.id}
+                isUnlocked={currentPoints >= level.min_points}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Certificates Section */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-semibold">Certificados Conquistados</h2>
+        <h2 className="text-2xl font-semibold text-white">Certificados Conquistados</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {certificates?.map((certificate) => (
             <Card 
@@ -157,7 +178,7 @@ export default function Journey() {
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Compartilhar no {network.name}</p>
+                            <p className="text-white">Compartilhar no {network.name}</p>
                           </TooltipContent>
                         </Tooltip>
                       ))}
@@ -165,8 +186,8 @@ export default function Journey() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold truncate">{certificate.courses?.title}</h3>
-                  <p className="text-sm text-muted-foreground">{certificate.courses?.category}</p>
+                  <h3 className="font-semibold text-white truncate">{certificate.courses?.title}</h3>
+                  <p className="text-sm text-white/60">{certificate.courses?.category}</p>
                 </div>
               </CardContent>
             </Card>

@@ -62,8 +62,8 @@ export function LevelCard({
         </div>
 
         <div className="text-center">
-          <h3 className="text-lg font-semibold">{name}</h3>
-          <p className="text-sm text-gray-400">
+          <h3 className="text-lg font-semibold text-white">{name}</h3>
+          <p className="text-sm text-white/60">
             {minPoints.toLocaleString()} - {maxPoints?.toLocaleString() ?? "∞"} pts
           </p>
         </div>
