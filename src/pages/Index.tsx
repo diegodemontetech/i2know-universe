@@ -8,7 +8,7 @@ interface Course {
   id: string;
   title: string;
   description: string;
-  thumbnail_url: string;
+  thumbnail_url: string | null;
   category: string;
   difficulty: string;
   duration: number;
@@ -18,7 +18,7 @@ const FeaturedCourse = ({ course }: { course: Course }) => (
   <div className="relative h-[70vh] w-full rounded-xl overflow-hidden mb-12">
     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background" />
     <img
-      src={course.thumbnail_url}
+      src={course.thumbnail_url || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"}
       alt={course.title}
       className="w-full h-full object-cover"
     />
@@ -45,21 +45,29 @@ const FeaturedCourse = ({ course }: { course: Course }) => (
 );
 
 const CourseCard = ({ course }: { course: Course }) => (
-  <div className="glass-card p-6 space-y-4 animate-scale-in">
-    <div className="aspect-video rounded-lg overflow-hidden bg-card-hover">
+  <div className="group relative overflow-hidden rounded-lg">
+    <div className="aspect-video w-full overflow-hidden">
       <img
-        src={course.thumbnail_url}
+        src={course.thumbnail_url || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"}
         alt={course.title}
-        className="w-full h-full object-cover"
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
       />
     </div>
-    <div>
-      <h3 className="text-lg font-semibold">{course.title}</h3>
-      <p className="text-sm text-gray-400 line-clamp-2">{course.description}</p>
-    </div>
-    <div className="flex justify-between items-center text-sm text-gray-400">
-      <span>{course.category}</span>
-      <span>{Math.floor(course.duration / 60)}h {course.duration % 60}min</span>
+    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div className="absolute bottom-0 p-4 text-white">
+        <h3 className="text-lg font-semibold">{course.title}</h3>
+        <p className="mt-2 text-sm text-gray-300 line-clamp-2">
+          {course.description}
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-sm bg-white/20 px-2 py-1 rounded">
+            {course.difficulty}
+          </span>
+          <span className="text-sm">
+            {Math.floor(course.duration / 60)}h {course.duration % 60}m
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -68,12 +76,17 @@ const Index = () => {
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
+      console.log("Fetching courses...");
       const { data, error } = await supabase
         .from("courses")
         .select("*")
         .order("created_at", { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching courses:", error);
+        throw error;
+      }
+      console.log("Courses fetched:", data);
       return data as Course[];
     },
   });
@@ -87,6 +100,17 @@ const Index = () => {
             <div key={i} className="aspect-video rounded-lg bg-card animate-pulse" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <h2 className="text-2xl font-semibold">Nenhum curso disponível</h2>
+        <p className="text-muted-foreground">
+          Novos cursos serão adicionados em breve.
+        </p>
       </div>
     );
   }

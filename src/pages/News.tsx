@@ -40,12 +40,17 @@ const News = () => {
   const { data: news = [], isLoading } = useQuery({
     queryKey: ["news"],
     queryFn: async () => {
+      console.log("Fetching news...");
       const { data, error } = await supabase
         .from("news")
         .select("*")
         .order("date", { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching news:", error);
+        throw error;
+      }
+      console.log("News fetched:", data);
       return data as News[];
     },
   });
@@ -68,6 +73,17 @@ const News = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (news.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <h2 className="text-2xl font-semibold">Nenhuma notícia disponível</h2>
+        <p className="text-muted-foreground">
+          Novas notícias serão adicionadas em breve.
+        </p>
       </div>
     );
   }

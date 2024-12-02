@@ -20,12 +20,17 @@ const Ebooks = () => {
   const { data: ebooks = [], isLoading } = useQuery({
     queryKey: ["ebooks"],
     queryFn: async () => {
+      console.log("Fetching ebooks...");
       const { data, error } = await supabase
         .from("ebooks")
         .select("*")
         .order("published_at", { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching ebooks:", error);
+        throw error;
+      }
+      console.log("Ebooks fetched:", data);
       return data as Ebook[];
     },
   });
@@ -45,6 +50,17 @@ const Ebooks = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (ebooks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <h2 className="text-2xl font-semibold">Nenhum e-book disponível</h2>
+        <p className="text-muted-foreground">
+          Novos e-books serão adicionados em breve.
+        </p>
       </div>
     );
   }
