@@ -38,31 +38,39 @@ export const Sidebar = () => {
   const location = useLocation();
   const { data: profile } = useProfile();
   const isAdminMaster = profile?.role === "admin_master";
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <aside 
       className={cn(
-        "bg-sidebar min-h-screen flex flex-col transition-all duration-300",
+        "bg-sidebar min-h-screen flex flex-col relative transition-all duration-300",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      <div className="p-4 flex justify-between items-center">
-        <div className={cn("transition-all duration-300", isCollapsed ? "w-full" : "w-32")}>
+      {/* Collapse toggle button positioned at the edge */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border border-white/10 bg-sidebar text-gray-400 hover:text-white shadow-md"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        {isCollapsed ? 
+          <ChevronRight className="h-3 w-3" /> : 
+          <ChevronLeft className="h-3 w-3" />
+        }
+      </Button>
+
+      <div className="p-4 flex justify-center items-center">
+        <div className={cn(
+          "transition-all duration-300",
+          isCollapsed ? "w-10" : "w-28"
+        )}>
           <img
-            src="https://i.ibb.co/yRKDrV7/i2know.png"
+            src={isCollapsed ? "https://i.ibb.co/qW3jGcW/i2know-1.png" : "https://i.ibb.co/yRKDrV7/i2know.png"}
             alt="i2Know"
             className="w-full h-auto object-contain"
           />
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-400 hover:text-white"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
       </div>
       
       <nav className="flex-1 space-y-2 p-4">
