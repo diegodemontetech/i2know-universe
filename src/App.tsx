@@ -18,6 +18,7 @@ import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
 import Ebooks from "./pages/Ebooks";
 import News from "./pages/News";
+import Journey from "./pages/Journey";
 import { useSession, SessionContextProvider } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="cursos/:id" element={<CourseDetails />} />
               <Route path="ebooks" element={<Ebooks />} />
               <Route path="noticias" element={<News />} />
+              <Route path="jornada" element={<Journey />} />
             </Route>
           </Routes>
         </BrowserRouter>
