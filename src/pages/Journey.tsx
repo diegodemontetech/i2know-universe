@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Trophy, Share2, Linkedin, Instagram, Facebook, WhatsApp } from "lucide-react";
+import { Trophy, Share2, Linkedin, Instagram, Facebook } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -32,7 +32,6 @@ const socialNetworks = [
   { name: "LinkedIn", icon: Linkedin, color: "hover:bg-[#0077b5]", url: "https://www.linkedin.com/sharing/share-offsite/?url=" },
   { name: "Instagram", icon: Instagram, color: "hover:bg-[#E4405F]", url: "https://www.instagram.com/share?url=" },
   { name: "Facebook", icon: Facebook, color: "hover:bg-[#1877F2]", url: "https://www.facebook.com/sharer/sharer.php?u=" },
-  { name: "WhatsApp", icon: WhatsApp, color: "hover:bg-[#25D366]", url: "https://wa.me/?text=" },
 ];
 
 export default function Journey() {
@@ -122,8 +121,8 @@ export default function Journey() {
             <CardContent className="p-0">
               <div className="relative aspect-video">
                 <img
-                  src={certificate.courses.thumbnail_url || "/placeholder.svg"}
-                  alt={certificate.courses.title}
+                  src={certificate.courses?.thumbnail_url || "/placeholder.svg"}
+                  alt={certificate.courses?.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
@@ -147,8 +146,8 @@ export default function Journey() {
                 </div>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold truncate">{certificate.courses.title}</h3>
-                <p className="text-sm text-muted-foreground">{certificate.courses.category}</p>
+                <h3 className="font-semibold truncate">{certificate.courses?.title}</h3>
+                <p className="text-sm text-muted-foreground">{certificate.courses?.category}</p>
               </div>
             </CardContent>
           </Card>
