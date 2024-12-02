@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { LessonList } from "./LessonList";
 export function LessonSettings() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: courses = [] } = useQuery({
     queryKey: ["courses"],
@@ -98,7 +99,6 @@ export function LessonSettings() {
         <LessonList 
           lessons={lessons} 
           onUpdate={() => {
-            // Invalidate the lessons query to refresh the data
             queryClient.invalidateQueries({ queryKey: ["lessons"] });
           }} 
         />
