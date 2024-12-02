@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Play, Clock, BarChart, Eye } from "lucide-react";
+import { Clock, BarChart } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useSession } from "@supabase/auth-helpers-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Lesson {
   id: string;
@@ -22,9 +23,10 @@ interface Lesson {
 
 export default function CourseDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const session = useSession();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: course, isLoading: isLoadingCourse } = useQuery({
     queryKey: ["course", id],
@@ -60,12 +62,15 @@ export default function CourseDetails() {
         .eq("course_id", id)
         .order("order_index");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching lessons:", error);
+        throw error;
+      }
       return data as Lesson[];
     },
   });
 
-  const { data: progress } = useQuery({
+  const { data: progress, isLoading: isLoadingProgress } = useQuery({
     queryKey: ["course-progress", id, session?.user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,11 +80,55 @@ export default function CourseDetails() {
         .eq("user_id", session?.user?.id)
         .single();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching progress:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!session?.user?.id,
   });
+
+  const updateProgressMutation = useMutation({
+    mutationFn: async (newProgress: number) => {
+      if (!session?.user?.id) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("course_progress")
+        .upsert({
+          user_id: session.user.id,
+          course_id: id,
+          progress: newProgress,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["course-progress"] });
+      toast({
+        title: "Progresso atualizado",
+        description: "Seu progresso foi salvo com sucesso!",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating progress:", error);
+      toast({
+        title: "Erro ao atualizar progresso",
+        description: "Ocorreu um erro ao salvar seu progresso.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Seleciona a primeira aula quando o curso é carregado
+  React.useEffect(() => {
+    if (lessons.length > 0 && !selectedLesson) {
+      setSelectedLesson(lessons[0]);
+    }
+  }, [lessons, selectedLesson]);
 
   if (isLoadingCourse || isLoadingLessons) {
     return (
@@ -94,20 +143,50 @@ export default function CourseDetails() {
   }
 
   if (!course) {
-    return <div>Curso não encontrado</div>;
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold">Curso não encontrado</h2>
+        <p className="text-muted-foreground mt-2">
+          O curso que você está procurando não existe ou foi removido.
+        </p>
+      </div>
+    );
   }
+
+  const handleLessonComplete = () => {
+    if (!lessons.length) return;
+    
+    const totalLessons = lessons.length;
+    const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson?.id);
+    const newProgress = Math.round(((currentIndex + 1) / totalLessons) * 100);
+    
+    updateProgressMutation.mutate(newProgress);
+
+    // Avança para a próxima aula se existir
+    if (currentIndex < lessons.length - 1) {
+      setSelectedLesson(lessons[currentIndex + 1]);
+    }
+  };
 
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       {/* Video Player Section */}
       <div className="flex-1 bg-black rounded-lg overflow-hidden">
         {selectedLesson?.youtube_url ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${selectedLesson.youtube_url.split("v=")[1]}`}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <div className="relative h-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${selectedLesson.youtube_url.split("v=")[1]}`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+            <Button
+              className="absolute bottom-4 right-4"
+              onClick={handleLessonComplete}
+            >
+              Concluir Aula
+            </Button>
+          </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
             Selecione uma aula para começar

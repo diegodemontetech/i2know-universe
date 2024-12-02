@@ -5,11 +5,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { QuestionFilters } from "./QuestionFilters";
 import { QuestionList } from "./QuestionList";
 import { QuestionForm } from "./QuestionForm";
+import { useToast } from "@/components/ui/use-toast";
 
 export function QuizSettings() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleQuestionCreated = () => {
+    setIsDialogOpen(false);
+    toast({
+      title: "Questão criada",
+      description: "A questão foi adicionada com sucesso ao quiz.",
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -34,7 +44,7 @@ export function QuizSettings() {
             </DialogHeader>
             <QuestionForm
               quizId={selectedCourseId}
-              onSuccess={() => setIsDialogOpen(false)}
+              onSuccess={handleQuestionCreated}
             />
           </DialogContent>
         </Dialog>
