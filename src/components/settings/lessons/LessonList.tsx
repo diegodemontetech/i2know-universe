@@ -4,33 +4,39 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface LessonListProps {
-  selectedCourseId: string;
+interface Lesson {
+  id: string;
+  title: string;
+  description: string | null;
+  youtube_url: string | null;
+  order_index: number;
+  course_id: string | null;
+  created_at: string;
+  updated_at: string;
+  support_materials: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    file_url: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
+  quizzes: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+  }>;
 }
 
-export function LessonList({ selectedCourseId }: LessonListProps) {
-  const { toast } = useToast();
+interface LessonListProps {
+  lessons: Lesson[];
+  onUpdate: () => void;
+}
 
-  const { data: lessons = [], isLoading } = useQuery({
-    queryKey: ["lessons", selectedCourseId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("lessons")
-        .select(`
-          *,
-          support_materials(*),
-          quizzes(
-            *,
-            quiz_questions(*)
-          )
-        `)
-        .eq("course_id", selectedCourseId)
-        .order("order_index");
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!selectedCourseId,
-  });
+export function LessonList({ lessons, onUpdate }: LessonListProps) {
+  const { toast } = useToast();
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -42,6 +48,7 @@ export function LessonList({ selectedCourseId }: LessonListProps) {
     },
     onSuccess: () => {
       toast({ title: "Aula excluída com sucesso!" });
+      onUpdate();
     },
     onError: (error) => {
       toast({
@@ -58,21 +65,11 @@ export function LessonList({ selectedCourseId }: LessonListProps) {
     }
   };
 
-  if (!selectedCourseId) {
+  if (!lessons.length) {
     return (
       <div className="border rounded-lg p-4">
         <p className="text-muted-foreground text-center">
-          Selecione um curso para gerenciar suas aulas
-        </p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="border rounded-lg p-4">
-        <p className="text-muted-foreground text-center">
-          Carregando aulas...
+          Nenhuma aula encontrada
         </p>
       </div>
     );
