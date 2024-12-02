@@ -1,17 +1,40 @@
-import { Home, BookOpen, Newspaper, Trophy, Settings, User } from "lucide-react";
+import { Home, Building2, Users, User, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useSession } from "@supabase/auth-helpers-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const useProfile = () => {
+  const session = useSession();
+  
+  return useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session?.user?.id)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!session?.user?.id,
+  });
+};
 
 const navigation = [
-  { name: "Home", icon: Home, path: "/" },
-  { name: "Courses", icon: BookOpen, path: "/courses" },
-  { name: "News", icon: Newspaper, path: "/news" },
-  { name: "Journey", icon: Trophy, path: "/journey" },
-  { name: "Profile", icon: User, path: "/profile" },
-  { name: "Settings", icon: Settings, path: "/settings" },
+  { name: "Início", icon: Home, path: "/" },
+  { name: "Empresas", icon: Building2, path: "/empresas", adminOnly: true },
+  { name: "Usuários", icon: Users, path: "/usuarios" },
+  { name: "Perfil", icon: User, path: "/perfil" },
+  { name: "Configurações", icon: Settings, path: "/configuracoes" },
 ];
 
 export const Sidebar = () => {
   const location = useLocation();
+  const { data: profile } = useProfile();
+  const isAdminMaster = profile?.role === "admin_master";
 
   return (
     <aside className="w-64 bg-sidebar min-h-screen p-4 flex flex-col">
@@ -21,6 +44,8 @@ export const Sidebar = () => {
       
       <nav className="flex-1 space-y-2">
         {navigation.map((item) => {
+          if (item.adminOnly && !isAdminMaster) return null;
+          
           const isActive = location.pathname === item.path;
           return (
             <Link
