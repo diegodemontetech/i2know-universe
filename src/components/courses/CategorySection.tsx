@@ -27,7 +27,7 @@ export const CategorySection = ({ category, title }: CategorySectionProps) => {
     return (
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">{title}</h2>
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="aspect-video bg-card animate-pulse rounded-lg" />
           ))}
@@ -39,12 +39,12 @@ export const CategorySection = ({ category, title }: CategorySectionProps) => {
   if (courses.length === 0) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h2 className="text-2xl font-semibold">{title}</h2>
       <ScrollArea>
-        <div className="flex space-x-6 pb-6">
+        <div className="flex space-x-4 pb-4">
           {courses.map((course) => (
-            <div key={course.id} className="w-[400px] flex-none">
+            <div key={course.id} className="w-[300px] flex-none">
               <CourseCard course={course} />
             </div>
           ))}

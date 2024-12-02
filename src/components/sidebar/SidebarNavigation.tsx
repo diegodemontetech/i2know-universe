@@ -54,22 +54,27 @@ export const SidebarNavigation = ({ isCollapsed, isAdmin, isAdminMaster }: Sideb
   ];
 
   return (
-    <ScrollArea className="flex-1 px-3">
+    <ScrollArea className="flex-1 px-4">
       <nav className="space-y-2">
         {navigation.map((item) => (
           <Link
             key={item.name}
             to={item.path}
             className={cn(
-              "nav-link group flex items-center gap-2 px-3 py-2 rounded-lg transition-colors",
-              location.pathname === item.path ? "bg-white/20 text-white" : "text-gray-400 hover:text-white hover:bg-white/10",
-              isCollapsed && "justify-center px-2"
+              "nav-link group",
+              location.pathname === item.path ? "active" : "",
+              isCollapsed && "justify-center"
             )}
             title={isCollapsed ? item.name : undefined}
           >
-            <item.icon className="w-5 h-5 flex-shrink-0" />
+            <item.icon className={cn(
+              "w-5 h-5",
+              location.pathname === item.path ? "text-white" : "text-gray-400"
+            )} />
             {!isCollapsed && (
-              <span className="truncate">{item.name}</span>
+              <span className={location.pathname === item.path ? "text-white" : "text-gray-400"}>
+                {item.name}
+              </span>
             )}
           </Link>
         ))}
