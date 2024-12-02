@@ -37,25 +37,11 @@ export function QuizSettings() {
     <div className="space-y-4">
       <div className="flex gap-4 items-center justify-between">
         <div className="flex gap-4 flex-1">
-          <Select
-            value={selectedCourseId}
-            onValueChange={setSelectedCourseId}
-          >
-            <SelectTrigger className="w-[300px]">
-              <SelectValue placeholder="Selecione o curso" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
           <QuestionFilters
             selectedCategoryId={selectedCategoryId}
+            selectedCourseId={selectedCourseId}
             onCategoryChange={setSelectedCategoryId}
+            onCourseChange={setSelectedCourseId}
           />
         </div>
 
