@@ -1,4 +1,3 @@
-import { Github } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {
@@ -28,15 +27,6 @@ export function Footer() {
           <Link to="/termos" className="text-sm text-gray-400 hover:text-white transition-colors">
             Termos
           </Link>
-          <a 
-            href="https://github.com/your-repo" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
-          >
-            <Github className="h-4 w-4" />
-            GitHub
-          </a>
         </nav>
       </div>
     </footer>
