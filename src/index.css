@@ -94,16 +94,6 @@
   .fluid-gap {
     @apply gap-4 sm:gap-6 lg:gap-8;
   }
-
-  /* Content container */
-  .content-container {
-    @apply w-full max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Consistent section spacing */
-  .section-spacing {
-    @apply py-6 sm:py-8 lg:py-12;
-  }
 }
 
 /* Responsive images */
