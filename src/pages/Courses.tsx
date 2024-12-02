@@ -5,28 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface Course {
   id: string;
   title: string;
   description: string;
-  thumbnail_url: string;
+  thumbnail_url: string | null;
   category: string;
   difficulty: "beginner" | "intermediate" | "advanced";
-  duration: number; // in minutes
-  progress?: number;
+  duration: number;
 }
 
-const categories = [
-  "All",
-  "Programming",
-  "Design",
-  "Business",
-  "Marketing",
-  "Data Science",
-];
+interface CourseProgress {
+  course_id: string;
+  progress: number;
+}
 
-const CourseCard = ({ course }: { course: Course }) => {
+const CourseCard = ({ course, progress }: { course: Course; progress?: number }) => {
   return (
     <div className="group relative overflow-hidden rounded-lg">
       <div className="aspect-video w-full overflow-hidden">
@@ -51,11 +47,11 @@ const CourseCard = ({ course }: { course: Course }) => {
               {Math.floor(course.duration / 60)}h {course.duration % 60}m
             </span>
           </div>
-          {course.progress !== undefined && (
+          {progress !== undefined && (
             <div className="mt-3">
-              <Progress value={course.progress} className="h-1" />
+              <Progress value={progress} className="h-1" />
               <span className="mt-1 text-xs text-gray-300">
-                {course.progress}% complete
+                {progress}% complete
               </span>
             </div>
           )}
@@ -65,24 +61,53 @@ const CourseCard = ({ course }: { course: Course }) => {
   );
 };
 
+const categories = [
+  "All",
+  "Programming",
+  "Design",
+  "Business",
+  "Marketing",
+  "Data Science",
+];
+
 export default function Courses() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const session = useSession();
 
-  const { data: courses, isLoading } = useQuery({
+  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (error) throw error;
       return data as Course[];
     },
   });
 
-  const filteredCourses = courses?.filter((course) => {
+  const { data: courseProgress = [] } = useQuery({
+    queryKey: ["course_progress", session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("course_progress")
+        .select("course_id, progress")
+        .eq("user_id", session.user.id);
+
+      if (error) throw error;
+      return data as CourseProgress[];
+    },
+    enabled: !!session?.user?.id,
+  });
+
+  const progressMap = Object.fromEntries(
+    courseProgress.map(p => [p.course_id, p.progress])
+  );
+
+  const filteredCourses = courses.filter((course) => {
     const matchesCategory = selectedCategory === "All" || course.category === selectedCategory;
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -122,7 +147,7 @@ export default function Courses() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoadingCourses ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(8)].map((_, i) => (
             <div
@@ -133,8 +158,12 @@ export default function Courses() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredCourses?.map((course) => (
-            <CourseCard key={course.id} course={course} />
+          {filteredCourses.map((course) => (
+            <CourseCard 
+              key={course.id} 
+              course={course}
+              progress={progressMap[course.id]}
+            />
           ))}
         </div>
       )}
