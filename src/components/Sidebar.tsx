@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight, GraduationCap, Book, Newspaper } from "lucide-react";
+import { 
+  Home, 
+  Building2, 
+  Users, 
+  User, 
+  Settings, 
+  ChevronLeft, 
+  ChevronRight, 
+  GraduationCap, 
+  Book, 
+  Newspaper,
+  UserPlus,
+  Building
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -28,13 +41,17 @@ const useProfile = () => {
 
 const navigation = [
   { name: "Início", icon: Home, path: "/" },
-  { name: "Empresas", icon: Building2, path: "/empresas", adminOnly: true },
   { name: "Usuários", icon: Users, path: "/usuarios" },
   { name: "Cursos", icon: GraduationCap, path: "/cursos" },
   { name: "E-books", icon: Book, path: "/ebooks" },
   { name: "Notícias", icon: Newspaper, path: "/noticias" },
   { name: "Perfil", icon: User, path: "/perfil" },
   { name: "Configurações", icon: Settings, path: "/configuracoes" },
+];
+
+const adminNavigation = [
+  { name: "Gerenciar Empresas", icon: Building, path: "/empresas" },
+  { name: "Gerenciar Admins", icon: UserPlus, path: "/usuarios/admins" },
 ];
 
 export const Sidebar = () => {
@@ -76,33 +93,65 @@ export const Sidebar = () => {
       </div>
       
       <nav className="flex-1 space-y-2 p-4">
-        {navigation.map((item) => {
-          if (item.adminOnly && !isAdminMaster) return null;
-          
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={cn(
-                "nav-link group",
-                isActive ? "active" : "",
-                isCollapsed && "justify-center"
-              )}
-              title={isCollapsed ? item.name : undefined}
-            >
-              <item.icon className={cn(
-                "w-5 h-5",
-                isActive ? "text-white" : "text-gray-400"
-              )} />
+        {navigation.map((item) => (
+          <Link
+            key={item.name}
+            to={item.path}
+            className={cn(
+              "nav-link group",
+              location.pathname === item.path ? "active" : "",
+              isCollapsed && "justify-center"
+            )}
+            title={isCollapsed ? item.name : undefined}
+          >
+            <item.icon className={cn(
+              "w-5 h-5",
+              location.pathname === item.path ? "text-white" : "text-gray-400"
+            )} />
+            {!isCollapsed && (
+              <span className={location.pathname === item.path ? "text-white" : "text-gray-400"}>
+                {item.name}
+              </span>
+            )}
+          </Link>
+        ))}
+
+        {isAdminMaster && (
+          <>
+            <div className={cn(
+              "border-t border-white/10 pt-2 mt-4",
+              !isCollapsed && "px-2"
+            )}>
               {!isCollapsed && (
-                <span className={isActive ? "text-white" : "text-gray-400"}>
-                  {item.name}
+                <span className="text-xs font-semibold text-gray-400 uppercase">
+                  Administração
                 </span>
               )}
-            </Link>
-          );
-        })}
+            </div>
+            {adminNavigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={cn(
+                  "nav-link group",
+                  location.pathname === item.path ? "active" : "",
+                  isCollapsed && "justify-center"
+                )}
+                title={isCollapsed ? item.name : undefined}
+              >
+                <item.icon className={cn(
+                  "w-5 h-5",
+                  location.pathname === item.path ? "text-white" : "text-gray-400"
+                )} />
+                {!isCollapsed && (
+                  <span className={location.pathname === item.path ? "text-white" : "text-gray-400"}>
+                    {item.name}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </>
+        )}
       </nav>
     </aside>
   );

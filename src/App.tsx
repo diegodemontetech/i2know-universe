@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Companies from "./pages/Companies";
 import CompanySettings from "./pages/CompanySettings";
 import Users from "./pages/Users";
+import AdminUsers from "./pages/Users/AdminUsers";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Courses from "./pages/Courses";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="empresas" element={<Companies />} />
               <Route path="empresas/:id/configuracoes" element={<CompanySettings />} />
               <Route path="usuarios" element={<Users />} />
+              <Route path="usuarios/admins" element={<AdminUsers />} />
               <Route path="perfil" element={<Profile />} />
               <Route path="configuracoes" element={<Settings />} />
               <Route path="cursos" element={<Courses />} />
