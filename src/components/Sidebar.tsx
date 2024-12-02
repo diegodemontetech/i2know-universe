@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import { Home, Building2, Users, User, Settings, ChevronLeft, ChevronRight, GraduationCap, Book, Newspaper } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +31,8 @@ const navigation = [
   { name: "Empresas", icon: Building2, path: "/empresas", adminOnly: true },
   { name: "Usuários", icon: Users, path: "/usuarios" },
   { name: "Cursos", icon: GraduationCap, path: "/cursos" },
+  { name: "E-books", icon: Book, path: "/ebooks" },
+  { name: "Notícias", icon: Newspaper, path: "/noticias" },
   { name: "Perfil", icon: User, path: "/perfil" },
   { name: "Configurações", icon: Settings, path: "/configuracoes" },
 ];
@@ -48,7 +50,6 @@ export const Sidebar = () => {
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Collapse toggle button positioned at the edge */}
       <Button
         variant="ghost"
         size="icon"
