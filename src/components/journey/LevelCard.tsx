@@ -37,7 +37,7 @@ export function LevelCard({
       className={cn(
         "relative p-6 rounded-xl transition-all duration-300",
         isCurrentLevel
-          ? "bg-gradient-to-br from-card via-card/50 to-card/30 shadow-lg shadow-primary/20"
+          ? "bg-gradient-to-br from-card via-card/50 to-card/30 shadow-lg shadow-primary/20 scale-110 z-10"
           : "bg-card hover:bg-card-hover",
         isUnlocked ? "opacity-100" : "opacity-50"
       )}
@@ -54,10 +54,14 @@ export function LevelCard({
         <div className="relative">
           <CircularProgress value={isUnlocked ? progress : 0} />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Star className={cn(
-              "w-8 h-8 transition-all duration-300",
-              isUnlocked ? "text-primary" : "text-gray-600"
-            )} />
+            <img 
+              src={icon} 
+              alt={name}
+              className={cn(
+                "w-12 h-12 transition-all duration-300",
+                isUnlocked ? "filter-none" : "filter grayscale"
+              )}
+            />
           </div>
         </div>
 

@@ -106,7 +106,7 @@ export default function Journey() {
             <Trophy className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-2xl text-white">Nível {currentLevel?.name}</CardTitle>
-          <CardDescription className="text-white/80">
+          <CardDescription className="text-white">
             {currentPoints.toLocaleString()} pontos conquistados
           </CardDescription>
         </CardHeader>
@@ -114,27 +114,36 @@ export default function Journey() {
 
       {/* Level Progress Path */}
       <div className="relative py-12">
-        <div className="absolute top-1/2 left-0 right-0 h-2 bg-secondary/20 -translate-y-1/2">
-          <div 
-            className="h-full bg-primary rounded-full transition-all duration-1000"
-            style={{ 
-              width: `${Math.min((currentPoints / (levels[levels.length - 1]?.max_points || 10000)) * 100, 100)}%`,
-              boxShadow: '0 0 20px rgba(229, 9, 20, 0.5)'
-            }}
-          />
+        {/* Curved Path Background */}
+        <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2">
+          <svg
+            className="w-full h-24"
+            preserveAspectRatio="none"
+            viewBox="0 0 1200 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0,50 C300,100 900,0 1200,50"
+              stroke="rgba(229, 9, 20, 0.2)"
+              strokeWidth="4"
+              fill="none"
+            />
+            <path
+              d="M0,50 C300,100 900,0 1200,50"
+              stroke="#E50914"
+              strokeWidth="4"
+              strokeDasharray="1200"
+              strokeDashoffset={`${1200 - (1200 * Math.min((currentPoints / (levels[levels.length - 1]?.max_points || 10000)) * 100, 100)) / 100}`}
+              fill="none"
+              className="transition-all duration-1000"
+            />
+          </svg>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
           {levels.map((level, index) => (
             <div key={level.id} className="relative">
-              {index > 0 && (
-                <div 
-                  className="absolute top-1/2 -left-8 w-16 h-16 border-t-2 border-primary/30"
-                  style={{
-                    transform: `rotate(${index % 2 ? 15 : -15}deg)`,
-                    transformOrigin: index % 2 ? 'bottom left' : 'top left'
-                  }}
-                />
-              )}
               <LevelCard
                 name={level.name}
                 icon={level.icon}
