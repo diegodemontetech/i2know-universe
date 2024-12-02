@@ -22,7 +22,7 @@ export default {
         background: "#141414",
         sidebar: "#1d1d1d",
         primary: "#E50914",
-        secondary: "#333333",
+        secondary: "#FFFFFF",
         accent: "#564d4d",
         success: "#46d369",
         card: {

@@ -387,6 +387,7 @@ export type Database = {
       }
       levels: {
         Row: {
+          badge_color: string
           created_at: string
           icon: string
           id: string
@@ -395,6 +396,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          badge_color?: string
           created_at?: string
           icon: string
           id?: string
@@ -403,6 +405,7 @@ export type Database = {
           name: string
         }
         Update: {
+          badge_color?: string
           created_at?: string
           icon?: string
           id?: string
