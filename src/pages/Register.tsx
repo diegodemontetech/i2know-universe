@@ -1,4 +1,5 @@
 import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,7 +16,7 @@ const Register = () => {
           supabaseClient={supabase}
           view="sign_up"
           appearance={{
-            theme: "dark",
+            theme: ThemeSupa,
             variables: {
               default: {
                 colors: {
