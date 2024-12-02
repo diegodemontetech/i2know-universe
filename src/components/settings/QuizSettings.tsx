@@ -19,6 +19,13 @@ const questionFormSchema = z.object({
   correctAnswer: z.string().min(1, "Selecione a resposta correta"),
 });
 
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correct_answer: string;
+}
+
 export function QuizSettings() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
@@ -70,7 +77,12 @@ export function QuizSettings() {
         .select("*")
         .eq("quiz_id", selectedCourseId);
       if (error) throw error;
-      return data;
+      
+      // Ensure options is always an array
+      return data.map((question): QuizQuestion => ({
+        ...question,
+        options: Array.isArray(question.options) ? question.options : [],
+      }));
     },
     enabled: !!selectedCourseId,
   });
