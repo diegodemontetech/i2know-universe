@@ -27,14 +27,23 @@ export const CourseCard = ({ course, showProgress = true }: CourseCardProps) => 
     queryFn: async () => {
       console.log("Fetching progress for course:", course.id, "user:", session?.user?.id);
       
+      if (!session?.user?.id) {
+        console.log("No user session, skipping progress fetch");
+        return null;
+      }
+
       const { data, error } = await supabase
         .from("course_progress")
         .select("progress")
         .eq("course_id", course.id)
-        .eq("user_id", session?.user?.id)
+        .eq("user_id", session.user.id)
         .single();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
+        if (error.code === "PGRST116") {
+          console.log("No progress found for course");
+          return null;
+        }
         console.error("Error fetching progress:", error);
         throw error;
       }
